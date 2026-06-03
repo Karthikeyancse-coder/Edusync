@@ -51,3 +51,18 @@ export async function login(uniqueId: string, password: string): Promise<{ profi
 
   return { profile: profile as User, error: null }
 }
+
+export async function loginWithOAuth(provider: 'google' | 'azure') {
+  const supabase = createClient()
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    },
+  })
+  
+  if (error) {
+    return { error: error.message }
+  }
+  return { error: null }
+}

@@ -8,7 +8,7 @@ import { Logo } from '@/components/ui/Logo'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
-import { login } from '@/lib/auth'
+import { login, loginWithOAuth } from '@/lib/auth'
 import { Iridescence } from '@/components/ui/Iridescence'
 
 export default function LoginPage() {
@@ -43,9 +43,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0A0A0F] via-[#13131A] to-[#0A0A2E] p-4">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[var(--primary)] opacity-10 rounded-full blur-[120px]" />
+    <div className="relative min-h-screen flex items-center justify-center p-4 transition-colors duration-300">
+      {/* Ambient Full-Screen Background with Glassic Blur */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <Iridescence color={[0.48, 0.43, 1.0]} speed={0.4} amplitude={0.05} mouseReact={false} />
+        <div className="absolute inset-0 backdrop-blur-[100px] bg-white/40 dark:bg-[#0A0A0F]/70" />
       </div>
 
       <div className="absolute top-4 right-4 z-50">
@@ -56,7 +58,7 @@ export default function LoginPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="relative z-10 w-full max-w-[900px] flex flex-col md:flex-row bg-white/5 dark:bg-surface/50 backdrop-blur-xl border border-white/10 dark:border-border-default rounded-3xl shadow-modal overflow-hidden"
+        className="relative z-10 w-full max-w-[900px] flex flex-col md:flex-row bg-white/60 dark:bg-[#13131A]/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 rounded-3xl shadow-[0_16px_40px_rgb(0,0,0,0.08)] dark:shadow-[0_16px_40px_rgb(0,0,0,0.4)] overflow-hidden"
       >
         {/* Left Side: Login Form */}
         <div className="flex-1 p-8 md:p-12 flex flex-col justify-center max-w-[420px] w-full mx-auto">
@@ -152,7 +154,44 @@ export default function LoginPage() {
               </motion.div>
             </form>
 
-            <div className="mt-8 text-center">
+            <div className="flex items-center my-6">
+              <div className="flex-1 border-t border-default"></div>
+              <span className="px-3 text-[11px] text-muted uppercase tracking-wider font-medium">or continue with</span>
+              <div className="flex-1 border-t border-default"></div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Button 
+                type="button" 
+                variant="secondary" 
+                className="w-full flex items-center justify-center gap-2 bg-surface2/50 border-default hover:bg-surface2 text-primary-color"
+                onClick={() => loginWithOAuth('google')}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="18" height="18">
+                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                  <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                Google
+              </Button>
+              <Button 
+                type="button" 
+                variant="secondary" 
+                className="w-full flex items-center justify-center gap-2 bg-surface2/50 border-default hover:bg-surface2 text-primary-color"
+                onClick={() => loginWithOAuth('azure')}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 21 21" width="18" height="18">
+                  <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+                  <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+                  <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+                  <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+                </svg>
+                Microsoft
+              </Button>
+            </div>
+
+            <div className="mt-6 text-center">
               <p className="text-[12px] text-muted">
                 Forgot your ID? Contact your administrator
               </p>
@@ -161,9 +200,9 @@ export default function LoginPage() {
         </div>
 
         {/* Right Side: Iridescence Animation */}
-        <div className="hidden md:flex flex-1 relative bg-black flex-col items-center justify-center p-12 text-center overflow-hidden">
+        <div className="hidden md:flex flex-1 relative flex-col items-center justify-center p-12 text-center overflow-hidden border-l border-white/30 dark:border-white/5">
           {/* The Iridescence canvas fills this absolute container */}
-          <div className="absolute inset-0 opacity-70">
+          <div className="absolute inset-0 opacity-100 dark:opacity-80">
             <Iridescence 
               color={[0.48, 0.43, 1.0]} 
               speed={0.8} 
@@ -173,9 +212,9 @@ export default function LoginPage() {
           </div>
           
           {/* Overlay text on top of animation */}
-          <div className="relative z-10 p-8 rounded-2xl bg-black/20 backdrop-blur-sm border border-white/10 mt-auto mb-10">
-            <h2 className="text-3xl font-bold text-white mb-3">College Communication Platform</h2>
-            <p className="text-white/80 text-sm leading-relaxed">
+          <div className="relative z-10 p-8 rounded-2xl bg-white/10 dark:bg-black/30 backdrop-blur-xl border border-white/30 dark:border-white/10 mt-auto mb-10 shadow-2xl">
+            <h2 className="text-3xl font-bold text-white mb-3 drop-shadow-md">College Communication</h2>
+            <p className="text-white/90 text-sm leading-relaxed drop-shadow-sm">
               Connect effortlessly with faculty, departments, and students.
               Real-time messaging, announcements, and group discussions all in one place.
             </p>
