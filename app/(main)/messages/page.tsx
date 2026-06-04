@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Send, Paperclip, MoreVertical, CheckCheck, Mic, X, ImageIcon, Reply, Forward, Trash2, ChevronDown, Edit2, Copy, User, BellOff, CheckSquare, XCircle, Pin, PinOff, MessageSquare } from 'lucide-react'
+import { Search, Send, Paperclip, MoreVertical, CheckCheck, Mic, X, ImageIcon, Reply, Forward, Trash2, ChevronDown, Edit2, Copy, User, BellOff, CheckSquare, XCircle, Pin, PinOff, MessageSquare, Archive, MinusCircle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Avatar } from '@/components/ui/Avatar'
 import { Input } from '@/components/ui/Input'
@@ -33,6 +33,7 @@ export default function Messages() {
   const [isRecording, setIsRecording] = useState(false)
   
   const [contextMenu, setContextMenu] = useState<{ id: number, x: number, y: number, isMe: boolean, msg: any } | null>(null)
+  const [contactContextMenu, setContactContextMenu] = useState<{ x: number, y: number, contact: any } | null>(null)
   const [pinnedMessage, setPinnedMessage] = useState<any | null>(null)
   const [replyingTo, setReplyingTo] = useState<any | null>(null)
   const [editingMessage, setEditingMessage] = useState<any | null>(null)
@@ -69,7 +70,10 @@ export default function Messages() {
   }, [chatMessages])
 
   useEffect(() => {
-    const handleGlobalClick = () => setContextMenu(null)
+    const handleGlobalClick = () => {
+      setContextMenu(null)
+      setContactContextMenu(null)
+    }
     window.addEventListener('click', handleGlobalClick)
     return () => window.removeEventListener('click', handleGlobalClick)
   }, [])
@@ -269,6 +273,14 @@ export default function Messages() {
                     transition={{ type: "spring", stiffness: 500, damping: 40 }}
                     key={contact.id}
                     onClick={() => setActiveContact(contact)}
+                    onContextMenu={(e) => {
+                      e.preventDefault()
+                      setContactContextMenu({
+                        x: e.clientX,
+                        y: e.clientY,
+                        contact: contact
+                      })
+                    }}
                     className={`w-full flex items-start gap-3 p-3 rounded-xl text-left transition-colors ${activeContact?.id === contact.id
                         ? 'bg-indigo-50 dark:bg-indigo-900/30'
                         : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
@@ -698,6 +710,42 @@ export default function Messages() {
             <div className="h-px w-full bg-slate-100 dark:bg-slate-700/50" />
             <button onClick={() => handleDeleteMessage(contextMenu.id)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
               <Trash2 size={14} /> Delete
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Global Contact Context Menu */}
+      <AnimatePresence>
+        {contactContextMenu && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.1 }}
+            className="fixed z-[100] w-52 bg-[#1a1a1a] dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-700/50 overflow-hidden py-2"
+            style={{ 
+              top: Math.min(contactContextMenu.y, typeof window !== 'undefined' ? window.innerHeight - 250 : contactContextMenu.y), 
+              left: Math.min(contactContextMenu.x, typeof window !== 'undefined' ? window.innerWidth - 200 : contactContextMenu.x) 
+            }}
+          >
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] font-medium text-slate-200 hover:bg-slate-800 transition-colors">
+              <Archive size={16} /> Archive chat
+            </button>
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] font-medium text-slate-200 hover:bg-slate-800 transition-colors">
+              <PinOff size={16} /> Unpin chat
+            </button>
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] font-medium text-slate-200 hover:bg-slate-800 transition-colors">
+              <CheckCheck size={16} /> Mark as unread
+            </button>
+            
+            <div className="h-px bg-slate-700/50 my-1 mx-4" />
+            
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] font-medium text-slate-200 hover:bg-slate-800 transition-colors">
+              <MinusCircle size={16} /> Clear chat
+            </button>
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] font-medium text-red-400 hover:bg-slate-800 transition-colors">
+              <Trash2 size={16} /> Delete chat
             </button>
           </motion.div>
         )}
