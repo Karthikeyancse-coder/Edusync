@@ -207,7 +207,7 @@ export default function LoginPage() {
               color={[0.48, 0.43, 1.0]} 
               speed={0.8} 
               amplitude={0.2} 
-              mouseReact={true} 
+              mouseReact={false} 
             />
           </div>
           
