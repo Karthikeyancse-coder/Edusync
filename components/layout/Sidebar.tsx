@@ -8,6 +8,7 @@ import { LayoutDashboard, MessageSquare, Users, BookOpen, Bell, LogOut } from 'l
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/Logo'
 import { Avatar } from '@/components/ui/Avatar'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { useAuth } from '@/providers/AuthProvider'
 
 const NAV_LINKS = [
@@ -89,13 +90,16 @@ export function Sidebar() {
               {profile?.role || ''}
             </p>
           </div>
-          <button 
-            onClick={() => signOut()}
-            className="p-2 text-muted hover:text-[var(--error)] transition-colors"
-            title="Log out"
-          >
-            <LogOut size={18} />
-          </button>
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <button 
+              onClick={() => signOut()}
+              className="p-2 text-slate-500 hover:text-[var(--error)] transition-colors rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
+              title="Log out"
+            >
+              <LogOut size={18} />
+            </button>
+          </div>
         </div>
       </div>
     </aside>

@@ -7,6 +7,7 @@ import { useAuth } from '@/providers/AuthProvider'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { PerformanceChart } from '@/components/ui/PerformanceChart'
 
 const stats = [
   {
@@ -136,6 +137,11 @@ export default function Dashboard() {
             </motion.div>
           ))}
         </div>
+
+        {/* Performance Chart */}
+        <motion.div variants={itemVariants}>
+          <PerformanceChart />
+        </motion.div>
 
         {/* Main Content Area Split */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
