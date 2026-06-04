@@ -24,6 +24,8 @@ const initialMessages = [
 export default function Messages() {
   const [activeContact, setActiveContact] = useState<any | null>(contacts[0])
   const [message, setMessage] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterMode, setFilterMode] = useState<'all' | 'individual' | 'group'>('all')
   const [chatMessages, setChatMessages] = useState<any[]>(initialMessages)
   
   const [isDragging, setIsDragging] = useState(false)
@@ -192,6 +194,16 @@ export default function Messages() {
     }
   }
 
+  const filteredContacts = contacts.filter(c => {
+    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          c.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
+    if (!matchesSearch) return false
+    
+    if (filterMode === 'group') return c.role === 'Group'
+    if (filterMode === 'individual') return c.role !== 'Group'
+    return true
+  })
+
   return (
     <div className="h-[calc(100vh-theme(spacing.16))] md:h-screen p-4 md:p-6 pb-24 md:pb-6 overflow-hidden relative">
       {/* Background for the entire page behind the cards */}
@@ -208,13 +220,45 @@ export default function Messages() {
             <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Messages</h2>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <Input placeholder="Search messages..." className="pl-10 bg-slate-50 dark:bg-slate-900 border-none" />
+              <Input 
+                placeholder="Search messages..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-slate-50 dark:bg-slate-900 border-none" 
+              />
+            </div>
+            
+            {/* Filter Toggle */}
+            <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl mt-4">
+              <button 
+                onClick={() => setFilterMode('all')}
+                className={`flex-1 py-1.5 text-[13px] font-semibold rounded-lg transition-all ${filterMode === 'all' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+              >
+                All
+              </button>
+              <button 
+                onClick={() => setFilterMode('individual')}
+                className={`flex-1 py-1.5 text-[13px] font-semibold rounded-lg transition-all ${filterMode === 'individual' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+              >
+                Individual
+              </button>
+              <button 
+                onClick={() => setFilterMode('group')}
+                className={`flex-1 py-1.5 text-[13px] font-semibold rounded-lg transition-all ${filterMode === 'group' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+              >
+                Groups
+              </button>
             </div>
           </div>
           <div className="flex-1 overflow-y-auto p-2">
-            {contacts.map((contact) => (
-              <button
-                key={contact.id}
+            {filteredContacts.length === 0 ? (
+              <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                <p className="text-sm">No chats found.</p>
+              </div>
+            ) : (
+              filteredContacts.map((contact) => (
+                <button
+                  key={contact.id}
                 onClick={() => setActiveContact(contact)}
                 className={`w-full flex items-start gap-3 p-3 rounded-xl text-left transition-colors ${activeContact?.id === contact.id
                     ? 'bg-indigo-50 dark:bg-indigo-900/30'
@@ -241,7 +285,8 @@ export default function Messages() {
                   </p>
                 </div>
               </button>
-            ))}
+              ))
+            )}
           </div>
         </Card>
 
