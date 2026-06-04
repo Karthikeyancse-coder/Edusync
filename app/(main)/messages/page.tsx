@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Send, Paperclip, MoreVertical, CheckCheck, Mic, X, ImageIcon, Reply, Forward, Trash2, ChevronDown, Edit2, Copy, User, BellOff, CheckSquare, XCircle, Pin, PinOff, MessageSquare, Archive, MinusCircle } from 'lucide-react'
+import { Search, Send, Paperclip, MoreVertical, CheckCheck, Mic, X, ImageIcon, Reply, Forward, Trash2, ChevronDown, Edit2, Copy, User, BellOff, CheckSquare, XCircle, Pin, PinOff, MessageSquare, Archive, MinusCircle, ArrowLeft } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Avatar } from '@/components/ui/Avatar'
 import { Input } from '@/components/ui/Input'
@@ -219,7 +219,7 @@ export default function Messages() {
         className="h-full flex gap-4 md:gap-6 max-w-7xl mx-auto relative z-10"
       >
         {/* Contacts Sidebar */}
-        <Card className="w-full md:w-80 lg:w-96 flex flex-col h-full bg-white/50 dark:bg-surface/50 backdrop-blur-sm border-slate-200/60 dark:border-slate-800/60">
+        <Card className={`w-full md:w-80 lg:w-96 flex-col h-full bg-white/50 dark:bg-surface/50 backdrop-blur-sm border-slate-200/60 dark:border-slate-800/60 ${activeContact ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 border-b border-slate-100 dark:border-slate-800/60">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Messages</h2>
             <div className="relative group">
@@ -317,7 +317,7 @@ export default function Messages() {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`hidden md:flex flex-1 flex-col h-full bg-[#f8f9fc]/90 dark:bg-slate-900/90 backdrop-blur-xl border-none shadow-xl relative overflow-hidden rounded-2xl transition-colors duration-300 ${isDragging ? 'ring-2 ring-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20' : ''}`}
+          className={`${activeContact ? 'flex' : 'hidden'} md:flex flex-1 flex-col h-full bg-[#f8f9fc]/90 dark:bg-slate-900/90 backdrop-blur-xl border-none shadow-xl relative overflow-hidden rounded-2xl transition-colors duration-300 ${isDragging ? 'ring-2 ring-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20' : ''}`}
         >
           {activeContact ? (
             <>
@@ -347,8 +347,14 @@ export default function Messages() {
           <div className="absolute top-[30%] left-[20%] w-[25rem] h-[25rem] bg-emerald-300/40 dark:bg-emerald-600/10 rounded-full blur-[80px] pointer-events-none" />
           
           {/* Chat Header */}
-          <div className="relative z-20 shrink-0 p-6 flex items-center justify-between border-b border-indigo-100/50 dark:border-slate-800/50 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
-            <div className="flex items-center gap-4">
+          <div className="relative z-20 shrink-0 p-4 md:p-6 flex items-center justify-between border-b border-indigo-100/50 dark:border-slate-800/50 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
+            <div className="flex items-center gap-3 md:gap-4">
+              <button 
+                onClick={() => setActiveContact(null)}
+                className="md:hidden p-2 -ml-2 mr-1 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+              >
+                <ArrowLeft size={20} />
+              </button>
               <div className="relative">
                 <div className="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-md">
                   {activeContact.avatar}
