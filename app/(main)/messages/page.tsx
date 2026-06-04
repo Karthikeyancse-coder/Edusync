@@ -7,7 +7,6 @@ import { Card } from '@/components/ui/Card'
 import { Avatar } from '@/components/ui/Avatar'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
-import { Iridescence } from '@/components/ui/Iridescence'
 
 const contacts = [
   { id: 1, name: 'Dr. Sarah Jenkins', role: 'Professor', lastMessage: 'The syllabus has been updated.', time: '10:42 AM', unread: 2, avatar: 'SJ' },
@@ -543,19 +542,54 @@ export default function Messages() {
           </div>
             </>
           ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-[#f8f9fc] to-[#eef1f8] dark:from-slate-900 dark:to-slate-950">
-              <Iridescence color={[0.4, 0.2, 0.8]} speed={0.8} amplitude={0.15} className="absolute inset-0 w-full h-full opacity-60 dark:opacity-40 pointer-events-none" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden bg-slate-50/50 dark:bg-slate-900/50">
+              {/* Floating Orbs Background */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <motion.div 
+                  animate={{ 
+                    x: [0, 50, 0, -50, 0],
+                    y: [0, -50, 0, 50, 0],
+                    scale: [1, 1.1, 1, 0.9, 1]
+                  }}
+                  transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                  className="absolute top-[10%] left-[10%] w-[40rem] h-[40rem] bg-indigo-400/20 dark:bg-indigo-600/20 rounded-full blur-[120px]" 
+                />
+                <motion.div 
+                  animate={{ 
+                    x: [0, -60, 0, 60, 0],
+                    y: [0, 60, 0, -60, 0],
+                    scale: [1, 0.9, 1, 1.1, 1]
+                  }}
+                  transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+                  className="absolute bottom-[5%] right-[5%] w-[35rem] h-[35rem] bg-violet-400/20 dark:bg-violet-600/20 rounded-full blur-[120px]" 
+                />
+                <motion.div 
+                  animate={{ 
+                    x: [0, 40, -40, 0],
+                    y: [0, 40, -40, 0],
+                    scale: [1, 1.2, 0.8, 1]
+                  }}
+                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                  className="absolute top-[40%] right-[30%] w-[30rem] h-[30rem] bg-emerald-400/10 dark:bg-emerald-600/10 rounded-full blur-[100px]" 
+                />
+              </div>
+
               <motion.div 
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="relative z-10 flex flex-col items-center justify-center p-10 text-center backdrop-blur-xl bg-white/40 dark:bg-slate-900/40 rounded-3xl border border-white/50 dark:border-slate-700/50 shadow-2xl max-w-md mx-4"
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="relative z-10 flex flex-col items-center justify-center p-12 text-center backdrop-blur-2xl bg-white/60 dark:bg-slate-900/60 rounded-[2.5rem] border border-white/50 dark:border-slate-700/50 shadow-xl shadow-indigo-900/5 max-w-md mx-4"
               >
-                <div className="w-24 h-24 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center mb-6 shadow-inner relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 animate-spin-slow" />
-                  <MessageSquare size={40} className="text-indigo-600 dark:text-indigo-400 relative z-10" />
-                </div>
+                <motion.div 
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.1 }}
+                  className="w-24 h-24 bg-gradient-to-tr from-indigo-500 to-violet-500 rounded-[2rem] flex items-center justify-center mb-8 shadow-lg shadow-indigo-500/30 text-white transform -rotate-6"
+                >
+                  <MessageSquare size={40} className="rotate-6" />
+                </motion.div>
                 <h3 className="text-3xl font-bold text-slate-800 dark:text-white mb-3">Your Messages</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed">Select a conversation from the sidebar or start a new chat to begin messaging.</p>
+                <p className="text-slate-500 dark:text-slate-400 text-[15px] leading-relaxed">Select a conversation from the sidebar or start a new chat to begin messaging.</p>
               </motion.div>
             </div>
           )}
