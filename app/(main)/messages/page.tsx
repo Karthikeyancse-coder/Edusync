@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Send, Paperclip, MoreVertical, CheckCheck, Mic, X, ImageIcon, Reply, Forward, Trash2, ChevronDown, Edit2, Copy, User, BellOff, CheckSquare, XCircle } from 'lucide-react'
+import { Search, Send, Paperclip, MoreVertical, CheckCheck, Mic, X, ImageIcon, Reply, Forward, Trash2, ChevronDown, Edit2, Copy, User, BellOff, CheckSquare, XCircle, Pin, PinOff } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Avatar } from '@/components/ui/Avatar'
 import { Input } from '@/components/ui/Input'
@@ -30,8 +30,8 @@ export default function Messages() {
   const [attachment, setAttachment] = useState<string | null>(null)
   const [isRecording, setIsRecording] = useState(false)
   
-  const [hoveredMessageId, setHoveredMessageId] = useState<number | null>(null)
-  const [activeMenuId, setActiveMenuId] = useState<number | null>(null)
+  const [contextMenu, setContextMenu] = useState<{ id: number, x: number, y: number, isMe: boolean, msg: any } | null>(null)
+  const [pinnedMessage, setPinnedMessage] = useState<any | null>(null)
   const [replyingTo, setReplyingTo] = useState<any | null>(null)
   const [editingMessage, setEditingMessage] = useState<any | null>(null)
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false)
@@ -51,6 +51,12 @@ export default function Messages() {
   useEffect(() => {
     scrollToBottom()
   }, [chatMessages])
+
+  useEffect(() => {
+    const handleGlobalClick = () => setContextMenu(null)
+    window.addEventListener('click', handleGlobalClick)
+    return () => window.removeEventListener('click', handleGlobalClick)
+  }, [])
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -114,29 +120,35 @@ export default function Messages() {
 
   const handleDeleteMessage = (id: number) => {
     setChatMessages(prev => prev.filter(m => m.id !== id))
-    setActiveMenuId(null)
+    if (pinnedMessage?.id === id) setPinnedMessage(null)
+    setContextMenu(null)
   }
 
   const handleReplyMessage = (msg: any) => {
     setReplyingTo(msg)
-    setActiveMenuId(null)
+    setContextMenu(null)
   }
 
   const handleForwardMessage = (msg: any) => {
     alert(`Forwarding message: "${msg.text || 'Attachment'}"`)
-    setActiveMenuId(null)
+    setContextMenu(null)
   }
 
   const handleCopyMessage = (msg: any) => {
     navigator.clipboard.writeText(msg.text || '')
-    setActiveMenuId(null)
+    setContextMenu(null)
   }
 
   const handleEditMessage = (msg: any) => {
     setEditingMessage(msg)
     setMessage(msg.text || '')
     setReplyingTo(null)
-    setActiveMenuId(null)
+    setContextMenu(null)
+  }
+
+  const handlePinMessage = (msg: any) => {
+    setPinnedMessage(msg)
+    setContextMenu(null)
   }
 
   const handleClearChat = () => {
@@ -300,18 +312,52 @@ export default function Messages() {
             </div>
           </div>
 
+          {/* Pinned Message */}
+          <AnimatePresence>
+            {pinnedMessage && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="relative z-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-indigo-100/50 dark:border-slate-800/50 px-6 py-3 flex items-center justify-between shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors"
+                onClick={() => {
+                  const element = document.getElementById(`msg-${pinnedMessage.id}`)
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    element.classList.add('ring-2', 'ring-indigo-500', 'ring-offset-2', 'dark:ring-offset-slate-900')
+                    setTimeout(() => element.classList.remove('ring-2', 'ring-indigo-500', 'ring-offset-2', 'dark:ring-offset-slate-900'), 2000)
+                  }
+                }}
+              >
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <Pin size={16} className="text-indigo-500 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400">Pinned Message</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 truncate font-medium">{pinnedMessage.text || 'Attachment'}</p>
+                  </div>
+                </div>
+                <button onClick={(e) => { e.stopPropagation(); setPinnedMessage(null); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 shrink-0 p-2">
+                  <X size={16} />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Chat Messages */}
           <div ref={messagesContainerRef} className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-6 relative z-10">
             <AnimatePresence initial={false}>
               {chatMessages.map((msg, index) => (
                 <motion.div
+                  id={`msg-${msg.id}`}
                   key={msg.id}
                   initial={{ opacity: 0, y: 20, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ duration: 0.3 }}
-                  className={`flex gap-3 ${msg.isMe ? 'justify-end' : 'justify-start'}`}
-                  onMouseEnter={() => setHoveredMessageId(msg.id)}
-                  onMouseLeave={() => setHoveredMessageId(null)}
+                  className={`flex gap-3 transition-shadow duration-500 ${msg.isMe ? 'justify-end' : 'justify-start'}`}
+                  onContextMenu={(e) => {
+                    e.preventDefault()
+                    setContextMenu({ id: msg.id, x: e.clientX, y: e.clientY, isMe: msg.isMe, msg })
+                  }}
               >
                 {!msg.isMe && (
                   <div className="w-8 h-8 shrink-0 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold text-xs self-end mb-1 border border-white dark:border-slate-800 shadow-sm">
@@ -324,47 +370,6 @@ export default function Messages() {
                     : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-bl-sm'
                 }`}>
                   
-                  {/* Action Button */}
-                  {(hoveredMessageId === msg.id || activeMenuId === msg.id) && (
-                    <button 
-                      onClick={() => setActiveMenuId(activeMenuId === msg.id ? null : msg.id)}
-                      className={`absolute top-2 right-2 w-6 h-6 rounded-full ${msg.isMe ? 'bg-black/20 hover:bg-black/30' : 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600'} text-current flex items-center justify-center backdrop-blur-md transition-colors z-20`}
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                  )}
-
-                  {/* Action Menu */}
-                  <AnimatePresence>
-                    {activeMenuId === msg.id && (
-                      <motion.div 
-                        initial={{ opacity: 0, scale: 0.9, y: -10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: -10 }}
-                        className={`absolute top-9 ${msg.isMe ? 'right-2' : 'left-2'} w-36 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-30`}
-                      >
-                        <button onClick={() => handleReplyMessage(msg)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                          <Reply size={14} /> Reply
-                        </button>
-                        {msg.isMe && (
-                          <button onClick={() => handleEditMessage(msg)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                            <Edit2 size={14} /> Edit
-                          </button>
-                        )}
-                        <button onClick={() => handleCopyMessage(msg)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                          <Copy size={14} /> Copy
-                        </button>
-                        <button onClick={() => handleForwardMessage(msg)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                          <Forward size={14} /> Forward
-                        </button>
-                        <div className="h-px w-full bg-slate-100 dark:bg-slate-700/50" />
-                        <button onClick={() => handleDeleteMessage(msg.id)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                          <Trash2 size={14} /> Delete
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
                   {/* Reply Context Banner */}
                   {msg.replyTo && (
                     <div className={`mb-3 p-2.5 rounded-xl border-l-4 ${msg.isMe ? 'bg-black/10 border-white/40' : 'bg-slate-100 dark:bg-slate-700/50 border-indigo-500'}`}>
@@ -530,6 +535,45 @@ export default function Messages() {
           </div>
         </Card>
       </motion.div>
+
+      {/* Global Context Menu */}
+      <AnimatePresence>
+        {contextMenu && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.1 }}
+            className="fixed z-[100] w-48 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden"
+            style={{ 
+              top: Math.min(contextMenu.y, typeof window !== 'undefined' ? window.innerHeight - 250 : contextMenu.y), 
+              left: Math.min(contextMenu.x, typeof window !== 'undefined' ? window.innerWidth - 200 : contextMenu.x) 
+            }}
+          >
+            <button onClick={() => handleReplyMessage(contextMenu.msg)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+              <Reply size={14} /> Reply
+            </button>
+            {contextMenu.isMe && (
+              <button onClick={() => handleEditMessage(contextMenu.msg)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                <Edit2 size={14} /> Edit
+              </button>
+            )}
+            <button onClick={() => handleCopyMessage(contextMenu.msg)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+              <Copy size={14} /> Copy
+            </button>
+            <button onClick={() => handleForwardMessage(contextMenu.msg)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+              <Forward size={14} /> Forward
+            </button>
+            <button onClick={() => handlePinMessage(contextMenu.msg)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+              <Pin size={14} /> Pin Message
+            </button>
+            <div className="h-px w-full bg-slate-100 dark:bg-slate-700/50" />
+            <button onClick={() => handleDeleteMessage(contextMenu.id)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+              <Trash2 size={14} /> Delete
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
