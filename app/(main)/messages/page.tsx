@@ -8,7 +8,7 @@ import { Avatar } from '@/components/ui/Avatar'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 
-const contacts = [
+const initialContacts = [
   { id: 1, name: 'Dr. Sarah Jenkins', role: 'Professor', lastMessage: 'The syllabus has been updated.', time: '10:42 AM', unread: 2, avatar: 'SJ' },
   { id: 2, name: 'Computer Science 101', role: 'Group', lastMessage: 'Don\'t forget the assignment!', time: 'Yesterday', unread: 0, avatar: 'CS' },
   { id: 3, name: 'Michael Chen', role: 'Student', lastMessage: 'Thanks for the help!', time: 'Tuesday', unread: 0, avatar: 'MC' },
@@ -22,7 +22,8 @@ const initialMessages = [
 ]
 
 export default function Messages() {
-  const [activeContact, setActiveContact] = useState<any | null>(contacts[0])
+  const [contacts, setContacts] = useState<any[]>(initialContacts)
+  const [activeContact, setActiveContact] = useState<any | null>(initialContacts[0])
   const [message, setMessage] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [filterMode, setFilterMode] = useState<'all' | 'individual' | 'group'>('all')
@@ -39,6 +40,9 @@ export default function Messages() {
   const [editingMessage, setEditingMessage] = useState<any | null>(null)
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false)
   const [bubbles, setBubbles] = useState<any[]>([])
+  const [archivedChatIds, setArchivedChatIds] = useState<number[]>([])
+  const [showArchived, setShowArchived] = useState(false)
+  const [pinnedChatIds, setPinnedChatIds] = useState<number[]>([])
   
   useEffect(() => {
     // Generate bubbles only on client side to prevent hydration mismatch
@@ -150,6 +154,41 @@ export default function Messages() {
     setContextMenu(null)
   }
 
+  const handleArchiveChat = (id: number) => {
+    if (archivedChatIds.includes(id)) {
+      setArchivedChatIds(prev => prev.filter(aid => aid !== id)) // Unarchive
+    } else {
+      setArchivedChatIds(prev => [...prev, id]) // Archive
+    }
+    setContactContextMenu(null)
+  }
+
+  const handlePinContact = (id: number) => {
+    if (pinnedChatIds.includes(id)) {
+      setPinnedChatIds(prev => prev.filter(pid => pid !== id))
+    } else {
+      setPinnedChatIds(prev => [...prev, id])
+    }
+    setContactContextMenu(null)
+  }
+
+  const handleToggleUnreadContact = (id: number) => {
+    setContacts(prev => prev.map(c => c.id === id ? { ...c, unread: c.unread > 0 ? 0 : 1 } : c))
+    setContactContextMenu(null)
+  }
+
+  const handleClearChatContact = (id: number) => {
+    if (activeContact?.id === id) setChatMessages([])
+    setContacts(prev => prev.map(c => c.id === id ? { ...c, lastMessage: '' } : c))
+    setContactContextMenu(null)
+  }
+
+  const handleDeleteContact = (id: number) => {
+    setContacts(prev => prev.filter(c => c.id !== id))
+    if (activeContact?.id === id) setActiveContact(null)
+    setContactContextMenu(null)
+  }
+
   const handleReplyMessage = (msg: any) => {
     setReplyingTo(msg)
     setContextMenu(null)
@@ -205,6 +244,10 @@ export default function Messages() {
   }
 
   const filteredContacts = contacts.filter(c => {
+    const isArchived = archivedChatIds.includes(c.id)
+    if (showArchived && !isArchived) return false
+    if (!showArchived && isArchived) return false
+
     const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           c.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
     if (!matchesSearch) return false
@@ -212,6 +255,12 @@ export default function Messages() {
     if (filterMode === 'group') return c.role === 'Group'
     if (filterMode === 'individual') return c.role !== 'Group'
     return true
+  }).sort((a, b) => {
+    const aPinned = pinnedChatIds.includes(a.id)
+    const bPinned = pinnedChatIds.includes(b.id)
+    if (aPinned && !bPinned) return -1
+    if (!aPinned && bPinned) return 1
+    return 0
   })
 
   return (
@@ -225,9 +274,11 @@ export default function Messages() {
         className="h-full flex gap-4 md:gap-6 max-w-7xl mx-auto relative z-10"
       >
         {/* Contacts Sidebar */}
-        <Card className={`w-full md:w-80 lg:w-96 flex-col h-full bg-white/50 dark:bg-surface/50 backdrop-blur-sm border-slate-200/60 dark:border-slate-800/60 ${activeContact ? 'hidden md:flex' : 'flex'}`}>
+        <Card className={`w-full md:w-80 lg:w-96 flex-col h-full relative bg-white/50 dark:bg-surface/50 backdrop-blur-sm border-slate-200/60 dark:border-slate-800/60 ${activeContact ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 border-b border-slate-100 dark:border-slate-800/60">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Messages</h2>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
+              {showArchived ? 'Archived Chats' : 'Messages'}
+            </h2>
             <div className="relative group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-indigo-500" size={18} />
               <Input 
@@ -304,11 +355,14 @@ export default function Messages() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-slate-900 dark:text-white truncate">{contact.name}</h3>
+                        <h3 className="font-semibold text-slate-900 dark:text-white truncate flex items-center gap-2">
+                          {contact.name}
+                          {pinnedChatIds.includes(contact.id) && <Pin size={12} className="text-slate-400" />}
+                        </h3>
                         <span className="text-xs text-slate-500">{contact.time}</span>
                       </div>
                       <p className={`text-sm truncate mt-0.5 ${contact.unread > 0 ? 'text-slate-900 dark:text-white font-medium' : 'text-slate-500 dark:text-slate-400'}`}>
-                        {contact.lastMessage}
+                        {contact.lastMessage || 'No recent messages'}
                       </p>
                     </div>
                   </motion.button>
@@ -316,6 +370,20 @@ export default function Messages() {
               )}
             </AnimatePresence>
           </div>
+          
+          {/* Archived Chats Toggle FAB */}
+          <button 
+            onClick={() => setShowArchived(!showArchived)}
+            className={`absolute bottom-6 right-6 z-20 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-105 ${showArchived ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'}`}
+            title={showArchived ? 'Back to inbox' : 'View archived chats'}
+          >
+            <Archive size={20} />
+            {archivedChatIds.length > 0 && !showArchived && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-indigo-500 rounded-full border-2 border-white dark:border-slate-800 flex items-center justify-center text-[10px] font-bold text-white">
+                {archivedChatIds.length}
+              </span>
+            )}
+          </button>
         </Card>
 
         {/* Active Chat Area */}
@@ -749,22 +817,23 @@ export default function Messages() {
               left: Math.min(contactContextMenu.x, typeof window !== 'undefined' ? window.innerWidth - 200 : contactContextMenu.x) 
             }}
           >
-            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] font-medium text-slate-200 hover:bg-slate-800 transition-colors">
-              <Archive size={16} /> Archive chat
+            <button onClick={() => handleArchiveChat(contactContextMenu.contact.id)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] font-medium text-slate-200 hover:bg-slate-800 transition-colors">
+              <Archive size={16} /> {archivedChatIds.includes(contactContextMenu.contact.id) ? 'Unarchive chat' : 'Archive chat'}
             </button>
-            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] font-medium text-slate-200 hover:bg-slate-800 transition-colors">
-              <PinOff size={16} /> Unpin chat
+            <button onClick={() => handlePinContact(contactContextMenu.contact.id)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] font-medium text-slate-200 hover:bg-slate-800 transition-colors">
+              {pinnedChatIds.includes(contactContextMenu.contact.id) ? <PinOff size={16} /> : <Pin size={16} />}
+              {pinnedChatIds.includes(contactContextMenu.contact.id) ? 'Unpin chat' : 'Pin chat'}
             </button>
-            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] font-medium text-slate-200 hover:bg-slate-800 transition-colors">
-              <CheckCheck size={16} /> Mark as unread
+            <button onClick={() => handleToggleUnreadContact(contactContextMenu.contact.id)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] font-medium text-slate-200 hover:bg-slate-800 transition-colors">
+              <CheckCheck size={16} /> {contactContextMenu.contact?.unread > 0 ? 'Mark as read' : 'Mark as unread'}
             </button>
             
             <div className="h-px bg-slate-700/50 my-1 mx-4" />
             
-            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] font-medium text-slate-200 hover:bg-slate-800 transition-colors">
+            <button onClick={() => handleClearChatContact(contactContextMenu.contact.id)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] font-medium text-slate-200 hover:bg-slate-800 transition-colors">
               <MinusCircle size={16} /> Clear chat
             </button>
-            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] font-medium text-red-400 hover:bg-slate-800 transition-colors">
+            <button onClick={() => handleDeleteContact(contactContextMenu.contact.id)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] font-medium text-red-400 hover:bg-slate-800 transition-colors">
               <Trash2 size={16} /> Delete chat
             </button>
           </motion.div>
