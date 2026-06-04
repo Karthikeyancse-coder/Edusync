@@ -2,11 +2,12 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Send, Paperclip, MoreVertical, CheckCheck, Mic, X, ImageIcon, Reply, Forward, Trash2, ChevronDown, Edit2, Copy, User, BellOff, CheckSquare, XCircle, Pin, PinOff } from 'lucide-react'
+import { Search, Send, Paperclip, MoreVertical, CheckCheck, Mic, X, ImageIcon, Reply, Forward, Trash2, ChevronDown, Edit2, Copy, User, BellOff, CheckSquare, XCircle, Pin, PinOff, MessageSquare } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Avatar } from '@/components/ui/Avatar'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
+import { Iridescence } from '@/components/ui/Iridescence'
 
 const contacts = [
   { id: 1, name: 'Dr. Sarah Jenkins', role: 'Professor', lastMessage: 'The syllabus has been updated.', time: '10:42 AM', unread: 2, avatar: 'SJ' },
@@ -22,7 +23,7 @@ const initialMessages = [
 ]
 
 export default function Messages() {
-  const [activeContact, setActiveContact] = useState(contacts[0])
+  const [activeContact, setActiveContact] = useState<any | null>(contacts[0])
   const [message, setMessage] = useState('')
   const [chatMessages, setChatMessages] = useState<any[]>(initialMessages)
   
@@ -156,6 +157,11 @@ export default function Messages() {
     setIsHeaderMenuOpen(false)
   }
 
+  const handleCloseChat = () => {
+    setActiveContact(null)
+    setIsHeaderMenuOpen(false)
+  }
+
   const handleMute = () => {
     alert(`Notifications muted for ${activeContact.name}`)
     setIsHeaderMenuOpen(false)
@@ -233,6 +239,8 @@ export default function Messages() {
           onDrop={handleDrop}
           className={`hidden md:flex flex-1 flex-col h-full bg-[#f8f9fc]/90 dark:bg-slate-900/90 backdrop-blur-xl border-none shadow-xl relative overflow-hidden rounded-2xl transition-colors duration-300 ${isDragging ? 'ring-2 ring-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20' : ''}`}
         >
+          {activeContact ? (
+            <>
           {/* Drag Overlay */}
           <AnimatePresence>
             {isDragging && (
@@ -299,7 +307,7 @@ export default function Messages() {
                     <button onClick={handleMute} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                       <BellOff size={16} /> Mute Notifications
                     </button>
-                    <button onClick={() => { alert('Chat closed'); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <button onClick={handleCloseChat} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                       <XCircle size={16} /> Close chat
                     </button>
                     <div className="h-px w-full bg-slate-100 dark:bg-slate-700/50" />
@@ -533,6 +541,24 @@ export default function Messages() {
               </Button>
             </div>
           </div>
+            </>
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-[#f8f9fc] to-[#eef1f8] dark:from-slate-900 dark:to-slate-950">
+              <Iridescence color={[0.4, 0.2, 0.8]} speed={0.8} amplitude={0.15} className="absolute inset-0 w-full h-full opacity-60 dark:opacity-40 pointer-events-none" />
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                className="relative z-10 flex flex-col items-center justify-center p-10 text-center backdrop-blur-xl bg-white/40 dark:bg-slate-900/40 rounded-3xl border border-white/50 dark:border-slate-700/50 shadow-2xl max-w-md mx-4"
+              >
+                <div className="w-24 h-24 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center mb-6 shadow-inner relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 animate-spin-slow" />
+                  <MessageSquare size={40} className="text-indigo-600 dark:text-indigo-400 relative z-10" />
+                </div>
+                <h3 className="text-3xl font-bold text-slate-800 dark:text-white mb-3">Your Messages</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed">Select a conversation from the sidebar or start a new chat to begin messaging.</p>
+              </motion.div>
+            </div>
+          )}
         </Card>
       </motion.div>
 
