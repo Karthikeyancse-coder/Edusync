@@ -35,7 +35,21 @@ export default function Messages() {
   const [replyingTo, setReplyingTo] = useState<any | null>(null)
   const [editingMessage, setEditingMessage] = useState<any | null>(null)
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false)
+  const [bubbles, setBubbles] = useState<any[]>([])
   
+  useEffect(() => {
+    // Generate bubbles only on client side to prevent hydration mismatch
+    const newBubbles = Array.from({ length: 30 }).map((_, i) => ({
+      id: i,
+      xOffset: Math.random() * 100, // 0 to 100%
+      size: Math.random() * 40 + 20, // 20 to 60px
+      duration: Math.random() * 15 + 10, // 10 to 25s
+      delay: Math.random() * 10,
+      rotate: Math.random() * 90 - 45
+    }))
+    setBubbles(newBubbles)
+  }, [])
+
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -545,25 +559,25 @@ export default function Messages() {
             <div className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-50/80 to-purple-50/80 dark:from-slate-900/90 dark:to-indigo-950/90">
               {/* Floating Chat Bubbles Background */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {[...Array(20)].map((_, i) => (
+                {bubbles.map((b) => (
                   <motion.div
-                    key={i}
-                    initial={{ y: "100vh", opacity: 0, x: (i % 2 === 0 ? 1 : -1) * (i * 40) }}
+                    key={b.id}
+                    initial={{ y: "110vh", opacity: 0, x: 0 }}
                     animate={{ 
                       y: "-20vh", 
-                      opacity: [0, 0.4, 0],
-                      rotate: (i % 3 === 0 ? 1 : -1) * (i * 15) 
+                      opacity: [0, 0.7, 0],
+                      rotate: b.rotate 
                     }}
                     transition={{ 
-                      duration: 10 + (i % 5) * 2, 
+                      duration: b.duration, 
                       repeat: Infinity, 
-                      delay: (i % 10) * 1.5,
+                      delay: b.delay,
                       ease: "linear"
                     }}
-                    className="absolute bottom-0 left-1/2 text-indigo-400/50 dark:text-indigo-500/40"
-                    style={{ marginLeft: `${(i % 2 === 0 ? 1 : -1) * (i * 4)}%` }}
+                    className="absolute bottom-0 text-indigo-400/60 dark:text-indigo-400/40"
+                    style={{ left: `${b.xOffset}%` }}
                   >
-                    <MessageSquare size={30 + (i % 4) * 10} strokeWidth={1.5} fill="currentColor" />
+                    <MessageSquare size={b.size} strokeWidth={1.5} fill="currentColor" />
                   </motion.div>
                 ))}
               </div>
