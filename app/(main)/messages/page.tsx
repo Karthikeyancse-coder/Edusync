@@ -606,14 +606,14 @@ export default function Messages() {
                   <motion.div 
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="flex-1 flex items-center gap-3 text-red-500 font-medium"
+                    className="flex-1 min-w-0 flex items-center gap-2 md:gap-3 text-red-500 font-medium"
                   >
                     <motion.div 
                       animate={{ scale: [1, 1.2, 1], opacity: [1, 0.5, 1] }}
                       transition={{ repeat: Infinity, duration: 1.5 }}
-                      className="w-3 h-3 bg-red-500 rounded-full"
+                      className="w-2.5 h-2.5 md:w-3 md:h-3 shrink-0 bg-red-500 rounded-full"
                     />
-                    Recording audio... 0:03
+                    <span className="truncate text-sm md:text-[15px]">Recording... 0:03</span>
                   </motion.div>
                 ) : (
                   <input
