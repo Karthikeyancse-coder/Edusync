@@ -229,25 +229,23 @@ export default function Messages() {
             </div>
             
             {/* Filter Toggle */}
-            <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl mt-4">
-              <button 
-                onClick={() => setFilterMode('all')}
-                className={`flex-1 py-1.5 text-[13px] font-semibold rounded-lg transition-all ${filterMode === 'all' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
-              >
-                All
-              </button>
-              <button 
-                onClick={() => setFilterMode('individual')}
-                className={`flex-1 py-1.5 text-[13px] font-semibold rounded-lg transition-all ${filterMode === 'individual' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
-              >
-                Individual
-              </button>
-              <button 
-                onClick={() => setFilterMode('group')}
-                className={`flex-1 py-1.5 text-[13px] font-semibold rounded-lg transition-all ${filterMode === 'group' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
-              >
-                Groups
-              </button>
+            <div className="flex bg-slate-100/60 dark:bg-slate-800/60 p-1 rounded-xl mt-4 relative">
+              {['all', 'individual', 'group'].map((tab) => (
+                <button 
+                  key={tab}
+                  onClick={() => setFilterMode(tab as any)}
+                  className={`relative flex-1 py-1.5 text-[13px] font-semibold rounded-lg transition-colors z-10 ${filterMode === tab ? 'text-slate-800 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                >
+                  {filterMode === tab && (
+                    <motion.div
+                      layoutId="filter-indicator"
+                      className="absolute inset-0 bg-white dark:bg-slate-700 shadow-[0_1px_3px_rgba(0,0,0,0.1)] rounded-lg -z-10 border border-slate-200/50 dark:border-slate-600/50"
+                      transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                    />
+                  )}
+                  {tab.charAt(0).toUpperCase() + tab.slice(1) + (tab === 'group' ? 's' : '')}
+                </button>
+              ))}
             </div>
           </div>
           <div className="flex-1 overflow-y-auto p-2">
