@@ -542,28 +542,28 @@ export default function Messages() {
           </div>
             </>
           ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden bg-slate-50/50 dark:bg-slate-900/50">
+            <div className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-50/80 to-purple-50/80 dark:from-slate-900/90 dark:to-indigo-950/90">
               {/* Floating Chat Bubbles Background */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 {[...Array(20)].map((_, i) => (
                   <motion.div
                     key={i}
-                    initial={{ y: "100vh", opacity: 0, x: (Math.random() - 0.5) * 1000 }}
+                    initial={{ y: "100vh", opacity: 0, x: (i % 2 === 0 ? 1 : -1) * (i * 40) }}
                     animate={{ 
                       y: "-20vh", 
-                      opacity: [0, 0.5, 0],
-                      rotate: (Math.random() - 0.5) * 90 
+                      opacity: [0, 0.4, 0],
+                      rotate: (i % 3 === 0 ? 1 : -1) * (i * 15) 
                     }}
                     transition={{ 
-                      duration: Math.random() * 15 + 15, 
+                      duration: 10 + (i % 5) * 2, 
                       repeat: Infinity, 
-                      delay: Math.random() * 20,
+                      delay: (i % 10) * 1.5,
                       ease: "linear"
                     }}
-                    className="absolute bottom-0 left-1/2 text-indigo-500/10 dark:text-indigo-400/10"
-                    style={{ marginLeft: `${(Math.random() - 0.5) * 100}%` }}
+                    className="absolute bottom-0 left-1/2 text-indigo-400/50 dark:text-indigo-500/40"
+                    style={{ marginLeft: `${(i % 2 === 0 ? 1 : -1) * (i * 4)}%` }}
                   >
-                    <MessageSquare size={Math.random() * 60 + 30} strokeWidth={1.5} fill="currentColor" />
+                    <MessageSquare size={30 + (i % 4) * 10} strokeWidth={1.5} fill="currentColor" />
                   </motion.div>
                 ))}
               </div>
