@@ -33,7 +33,7 @@ export default function Groups() {
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 pb-24">
       {/* Header Section */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
@@ -51,7 +51,7 @@ export default function Groups() {
       </motion.div>
 
       {/* Groups Grid */}
-      <motion.div 
+      <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="show"
@@ -72,7 +72,7 @@ export default function Groups() {
                     </div>
                   </div>
                 </div>
-                
+
                 <Button variant="ghost" size="icon" className="absolute top-4 right-4 text-slate-400 hover:text-slate-900 dark:hover:text-white">
                   <MoreHorizontal size={20} />
                 </Button>
