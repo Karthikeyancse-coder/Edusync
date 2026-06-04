@@ -203,7 +203,7 @@ export default function Messages() {
               <button
                 key={contact.id}
                 onClick={() => setActiveContact(contact)}
-                className={`w-full flex items-start gap-3 p-3 rounded-xl text-left transition-colors ${activeContact.id === contact.id
+                className={`w-full flex items-start gap-3 p-3 rounded-xl text-left transition-colors ${activeContact?.id === contact.id
                     ? 'bg-indigo-50 dark:bg-indigo-900/30'
                     : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
                   }`}
