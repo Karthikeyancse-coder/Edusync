@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Send, Paperclip, MoreVertical, CheckCheck, Mic, X, ImageIcon, Reply, Forward, Trash2, ChevronDown, Edit2, Copy } from 'lucide-react'
+import { Search, Send, Paperclip, MoreVertical, CheckCheck, Mic, X, ImageIcon, Reply, Forward, Trash2, ChevronDown, Edit2, Copy, User, BellOff } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Avatar } from '@/components/ui/Avatar'
 import { Input } from '@/components/ui/Input'
@@ -34,6 +34,7 @@ export default function Messages() {
   const [activeMenuId, setActiveMenuId] = useState<number | null>(null)
   const [replyingTo, setReplyingTo] = useState<any | null>(null)
   const [editingMessage, setEditingMessage] = useState<any | null>(null)
+  const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false)
   
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -136,6 +137,21 @@ export default function Messages() {
     setMessage(msg.text || '')
     setReplyingTo(null)
     setActiveMenuId(null)
+  }
+
+  const handleClearChat = () => {
+    setChatMessages([])
+    setIsHeaderMenuOpen(false)
+  }
+
+  const handleMute = () => {
+    alert(`Notifications muted for ${activeContact.name}`)
+    setIsHeaderMenuOpen(false)
+  }
+
+  const handleContactInfo = () => {
+    alert(`Contact Info: ${activeContact.name}\nRole: ${activeContact.role}`)
+    setIsHeaderMenuOpen(false)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -244,9 +260,38 @@ export default function Messages() {
                 <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mt-0.5">{activeContact.role}</p>
               </div>
             </div>
-            <Button variant="ghost" size="icon" className="text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 shadow-sm rounded-full w-10 h-10 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700">
-              <MoreVertical size={20} />
-            </Button>
+            <div className="relative">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)}
+                className="text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 shadow-sm rounded-full w-10 h-10 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700 transition-colors focus:outline-none"
+              >
+                <MoreVertical size={20} />
+              </Button>
+              <AnimatePresence>
+                {isHeaderMenuOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-12 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50"
+                  >
+                    <button onClick={handleContactInfo} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                      <User size={16} /> Contact Info
+                    </button>
+                    <button onClick={handleMute} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                      <BellOff size={16} /> Mute Notifications
+                    </button>
+                    <div className="h-px w-full bg-slate-100 dark:bg-slate-700/50" />
+                    <button onClick={handleClearChat} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                      <Trash2 size={16} /> Clear Chat
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
           {/* Chat Messages */}
