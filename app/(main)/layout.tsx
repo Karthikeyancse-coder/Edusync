@@ -4,7 +4,7 @@ import { BottomNav } from '@/components/layout/BottomNav'
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden bg-[var(--bg-primary)] transition-colors duration-300">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden pb-16 md:pb-0 md:ml-64">
         <main className="flex-1 overflow-y-auto">

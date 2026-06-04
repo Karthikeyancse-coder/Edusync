@@ -13,8 +13,8 @@ import { Iridescence } from '@/components/ui/Iridescence'
 
 export default function LoginPage() {
   const router = useRouter()
-  const [uniqueId, setUniqueId] = useState('')
-  const [password, setPassword] = useState('')
+  const [uniqueId, setUniqueId] = useState('PRIN-001') // Default for dev
+  const [password, setPassword] = useState('password123') // Default for dev
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)

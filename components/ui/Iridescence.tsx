@@ -48,8 +48,8 @@ void main() {
 }
 `;
 
-export function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude = 0.1, mouseReact = true, ...rest }) {
-  const ctnDom = useRef(null);
+export function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude = 0.1, mouseReact = true, ...rest }: any) {
+  const ctnDom = useRef<HTMLDivElement>(null);
   const mousePos = useRef({ x: 0.5, y: 0.5 });
 
   useEffect(() => {
@@ -59,7 +59,7 @@ export function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude = 0.1, m
     const gl = renderer.gl;
     gl.clearColor(1, 1, 1, 1);
 
-    let program;
+    let program: any;
 
     function resize() {
       const scale = 1;
@@ -92,9 +92,9 @@ export function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude = 0.1, m
     });
 
     const mesh = new Mesh(gl, { geometry, program });
-    let animateId;
+    let animateId: number;
 
-    function update(t) {
+    function update(t: number) {
       animateId = requestAnimationFrame(update);
       program.uniforms.uTime.value = t * 0.001;
       renderer.render({ scene: mesh });
@@ -102,7 +102,7 @@ export function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude = 0.1, m
     animateId = requestAnimationFrame(update);
     ctn.appendChild(gl.canvas);
 
-    function handleMouseMove(e) {
+    function handleMouseMove(e: MouseEvent) {
       const rect = ctn.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width;
       const y = 1.0 - (e.clientY - rect.top) / rect.height;

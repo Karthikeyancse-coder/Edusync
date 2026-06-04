@@ -3,6 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { motion } from 'framer-motion'
 import { LayoutDashboard, MessageSquare, Users, BookOpen, Bell, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/Logo'
@@ -22,7 +23,7 @@ export function Sidebar() {
   const { profile, signOut } = useAuth()
 
   return (
-    <aside className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 bg-surface border-r border-default z-40">
+    <aside className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 bg-slate-100 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-40">
       <div className="p-6">
         <Logo size="sm" />
       </div>
@@ -37,17 +38,41 @@ export function Sidebar() {
               key={link.href}
               href={link.href}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors relative",
+                "group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 relative overflow-hidden",
                 isActive 
-                  ? "bg-surface2 text-primary-color" 
-                  : "text-muted hover:bg-surface2 hover:text-primary-color"
+                  ? "text-white shadow-md" 
+                  : "text-slate-600 hover:text-indigo-700 dark:text-slate-400 dark:hover:text-indigo-300"
               )}
             >
+              {/* Active Background - Framer Motion */}
               {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[var(--primary)] rounded-r-full" />
+                <motion.div
+                  layoutId="sidebar-active-bg"
+                  className="absolute inset-0 bg-indigo-600 dark:bg-indigo-600 rounded-xl z-0"
+                  initial={false}
+                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                />
               )}
-              <Icon size={20} className={isActive ? "text-[var(--primary)]" : ""} />
-              {link.label}
+
+              {/* Hover Background */}
+              {!isActive && (
+                <div className="absolute inset-0 bg-indigo-200/0 group-hover:bg-indigo-200/50 dark:group-hover:bg-indigo-900/40 rounded-xl z-0 transition-colors duration-300" />
+              )}
+
+              {/* Active Left Border - Removed to prefer the solid block style */}
+
+              <div className="relative z-10 flex items-center gap-3 transform group-hover:translate-x-1 transition-transform duration-300 w-full">
+                <Icon 
+                  size={20} 
+                  className={cn(
+                    "transition-all duration-300",
+                    isActive ? "scale-110 drop-shadow-sm" : "group-hover:scale-110"
+                  )} 
+                />
+                <span className="relative">
+                  {link.label}
+                </span>
+              </div>
             </Link>
           )
         })}
