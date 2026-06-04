@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { motion } from 'framer-motion'
+import { motion, Variants } from 'framer-motion'
 import { Users, GraduationCap, BookOpen, Bell, Calendar, ChevronRight, Activity, ArrowUpRight } from 'lucide-react'
 import { useAuth } from '@/providers/AuthProvider'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/Card'
@@ -54,7 +54,7 @@ const recentActivity = [
   { id: 4, title: 'Server maintenance scheduled', time: 'Yesterday', type: 'system' },
 ]
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
@@ -62,7 +62,7 @@ const containerVariants = {
   },
 }
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
 }
