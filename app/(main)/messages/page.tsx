@@ -543,35 +543,29 @@ export default function Messages() {
             </>
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden bg-slate-50/50 dark:bg-slate-900/50">
-              {/* Floating Orbs Background */}
+              {/* Floating Chat Bubbles Background */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <motion.div 
-                  animate={{ 
-                    x: [0, 50, 0, -50, 0],
-                    y: [0, -50, 0, 50, 0],
-                    scale: [1, 1.1, 1, 0.9, 1]
-                  }}
-                  transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                  className="absolute top-[10%] left-[10%] w-[40rem] h-[40rem] bg-indigo-400/20 dark:bg-indigo-600/20 rounded-full blur-[120px]" 
-                />
-                <motion.div 
-                  animate={{ 
-                    x: [0, -60, 0, 60, 0],
-                    y: [0, 60, 0, -60, 0],
-                    scale: [1, 0.9, 1, 1.1, 1]
-                  }}
-                  transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-                  className="absolute bottom-[5%] right-[5%] w-[35rem] h-[35rem] bg-violet-400/20 dark:bg-violet-600/20 rounded-full blur-[120px]" 
-                />
-                <motion.div 
-                  animate={{ 
-                    x: [0, 40, -40, 0],
-                    y: [0, 40, -40, 0],
-                    scale: [1, 1.2, 0.8, 1]
-                  }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                  className="absolute top-[40%] right-[30%] w-[30rem] h-[30rem] bg-emerald-400/10 dark:bg-emerald-600/10 rounded-full blur-[100px]" 
-                />
+                {[...Array(20)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ y: "100vh", opacity: 0, x: (Math.random() - 0.5) * 1000 }}
+                    animate={{ 
+                      y: "-20vh", 
+                      opacity: [0, 0.5, 0],
+                      rotate: (Math.random() - 0.5) * 90 
+                    }}
+                    transition={{ 
+                      duration: Math.random() * 15 + 15, 
+                      repeat: Infinity, 
+                      delay: Math.random() * 20,
+                      ease: "linear"
+                    }}
+                    className="absolute bottom-0 left-1/2 text-indigo-500/10 dark:text-indigo-400/10"
+                    style={{ marginLeft: `${(Math.random() - 0.5) * 100}%` }}
+                  >
+                    <MessageSquare size={Math.random() * 60 + 30} strokeWidth={1.5} fill="currentColor" />
+                  </motion.div>
+                ))}
               </div>
 
               <motion.div 
@@ -584,9 +578,14 @@ export default function Messages() {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.1 }}
-                  className="w-24 h-24 bg-gradient-to-tr from-indigo-500 to-violet-500 rounded-[2rem] flex items-center justify-center mb-8 shadow-lg shadow-indigo-500/30 text-white transform -rotate-6"
+                  className="w-24 h-24 bg-gradient-to-tr from-indigo-500 to-violet-500 rounded-[2rem] flex items-center justify-center mb-8 shadow-lg shadow-indigo-500/30 text-white transform -rotate-6 relative"
                 >
-                  <MessageSquare size={40} className="rotate-6" />
+                  <motion.div
+                    animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute inset-0 bg-white/20 rounded-[2rem] blur-md"
+                  />
+                  <MessageSquare size={40} className="rotate-6 relative z-10" />
                 </motion.div>
                 <h3 className="text-3xl font-bold text-slate-800 dark:text-white mb-3">Your Messages</h3>
                 <p className="text-slate-500 dark:text-slate-400 text-[15px] leading-relaxed">Select a conversation from the sidebar or start a new chat to begin messaging.</p>
