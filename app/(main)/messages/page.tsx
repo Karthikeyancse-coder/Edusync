@@ -621,14 +621,14 @@ export default function Messages() {
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Type your message..."
-                    className="flex-1 bg-transparent text-[15px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
+                    className="flex-1 min-w-0 bg-transparent text-[15px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
                   />
                 )}
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   onClick={() => setIsRecording(!isRecording)}
-                  className={`w-9 h-9 rounded-full ${isRecording ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-slate-400 hover:text-indigo-600'}`}
+                  className={`shrink-0 w-9 h-9 -mr-2 ml-1 rounded-full ${isRecording ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-slate-400 hover:text-indigo-600'}`}
                 >
                   <Mic size={20} />
                 </Button>
