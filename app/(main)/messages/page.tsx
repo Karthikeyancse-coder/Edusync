@@ -29,7 +29,7 @@ export default function Messages() {
   const [chatMessages, setChatMessages] = useState<any[]>(initialMessages)
   
   const [isDragging, setIsDragging] = useState(false)
-  const [attachment, setAttachment] = useState<string | null>(null)
+  const [attachments, setAttachments] = useState<string[]>([])
   const [isRecording, setIsRecording] = useState(false)
   
   const [contextMenu, setContextMenu] = useState<{ id: number, x: number, y: number, isMe: boolean, msg: any } | null>(null)
@@ -91,23 +91,28 @@ export default function Messages() {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileSelect(e.dataTransfer.files[0])
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFilesSelect(e.dataTransfer.files)
     }
   }
 
-  const handleFileSelect = (file: File) => {
-    if (file && file.type.startsWith('image/')) {
+  const handleFilesSelect = (files: FileList | File[]) => {
+    const validFiles = Array.from(files).filter(f => f.type.startsWith('image/')).slice(0, 5 - attachments.length)
+    if (validFiles.length === 0) return
+
+    validFiles.forEach(file => {
       const reader = new FileReader()
       reader.onload = (e) => {
-        setAttachment(e.target?.result as string)
+        if (e.target?.result) {
+          setAttachments(prev => [...prev, e.target!.result as string].slice(0, 5))
+        }
       }
       reader.readAsDataURL(file)
-    }
+    })
   }
 
   const handleSend = () => {
-    if (!message.trim() && !attachment && !isRecording) return
+    if (!message.trim() && attachments.length === 0 && !isRecording) return
 
     if (editingMessage) {
       setChatMessages(prev => prev.map(m => 
@@ -124,7 +129,8 @@ export default function Messages() {
       id: Date.now(),
       senderId: 'me',
       text: isRecording ? 'Audio Message' : message,
-      image: attachment,
+      image: null,
+      images: attachments.length > 0 ? attachments : null,
       isAudio: isRecording,
       replyTo: replyingTo,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -133,7 +139,7 @@ export default function Messages() {
 
     setChatMessages([...chatMessages, newMessage])
     setMessage('')
-    setAttachment(null)
+    setAttachments([])
     setIsRecording(false)
     setReplyingTo(null)
   }
@@ -209,7 +215,7 @@ export default function Messages() {
   })
 
   return (
-    <div className="h-[calc(100vh-theme(spacing.16))] md:h-screen p-4 md:p-6 pb-24 md:pb-6 overflow-hidden relative">
+    <div className="h-[calc(100vh-theme(spacing.16))] md:h-screen p-4 md:p-6 pb-4 md:pb-6 overflow-hidden relative">
       {/* Background for the entire page behind the cards */}
       <div className="absolute inset-0 bg-blue-300 dark:bg-slate-900 z-0" />
       
@@ -475,6 +481,11 @@ export default function Messages() {
                       </p>
                     </div>
                   )}
+                  {msg.images && msg.images.map((img: string, i: number) => (
+                    <div key={i} className="mb-3 rounded-xl overflow-hidden">
+                      <img src={img} alt="Attachment" className="max-w-full h-auto object-cover max-h-64 rounded-xl" />
+                    </div>
+                  ))}
                   {msg.image && (
                     <div className="mb-3 rounded-xl overflow-hidden">
                       <img src={msg.image} alt="Attachment" className="max-w-full h-auto object-cover max-h-64 rounded-xl" />
@@ -551,22 +562,24 @@ export default function Messages() {
                 </motion.div>
               )}
 
-              {attachment && (
+              {attachments.length > 0 && (
                 <motion.div 
                   initial={{ opacity: 0, y: 10, height: 0 }}
                   animate={{ opacity: 1, y: 0, height: 'auto' }}
                   exit={{ opacity: 0, y: 10, height: 0 }}
-                  className="relative self-start"
+                  className="relative flex gap-3 flex-wrap items-start"
                 >
-                  <div className="relative w-24 h-24 rounded-xl overflow-hidden border-2 border-indigo-500 shadow-md">
-                    <img src={attachment} alt="Preview" className="w-full h-full object-cover" />
-                    <button 
-                      onClick={() => setAttachment(null)}
-                      className="absolute top-1 right-1 w-6 h-6 bg-slate-900/60 text-white rounded-full flex items-center justify-center hover:bg-red-500 transition-colors"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
+                  {attachments.map((att, i) => (
+                    <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-indigo-500 shadow-md">
+                      <img src={att} alt="Preview" className="w-full h-full object-cover" />
+                      <button 
+                        onClick={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))}
+                        className="absolute top-1 right-1 w-6 h-6 bg-slate-900/60 text-white rounded-full flex items-center justify-center hover:bg-red-500 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -574,8 +587,9 @@ export default function Messages() {
             <div className="flex items-center gap-3 w-full">
               <input 
                 type="file" 
+                multiple
                 ref={fileInputRef} 
-                onChange={(e) => e.target.files && handleFileSelect(e.target.files[0])}
+                onChange={(e) => e.target.files && handleFilesSelect(e.target.files)}
                 className="hidden" 
                 accept="image/*"
               />
