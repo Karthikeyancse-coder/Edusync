@@ -36,8 +36,9 @@ export default function Directory() {
   const [usersData, setUsersData] = useState(users)
   const [filter, setFilter] = useState('all')
   const [deptFilter, setDeptFilter] = useState('all')
-  const [studentTypeFilter, setStudentTypeFilter] = useState('all')
+  const [yearFilter, setYearFilter] = useState('all')
   const [sectionFilter, setSectionFilter] = useState('all')
+  const [studentTypeFilter, setStudentTypeFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedUser, setSelectedUser] = useState<any | null>(null)
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false)
@@ -56,11 +57,12 @@ export default function Directory() {
   const filteredUsers = usersData.filter(u => {
     const matchesFilter = filter === 'all' || u.role === filter
     const matchesDept = deptFilter === 'all' || u.department === deptFilter
+    const matchesYear = filter !== 'student' || yearFilter === 'all' || (u as any).year === yearFilter
+    const matchesSection = filter !== 'student' || sectionFilter === 'all' || (u as any).section === sectionFilter
     const matchesStudentType = filter !== 'student' || studentTypeFilter === 'all' || (u as any).studentType === studentTypeFilter
-    const matchesSection = filter !== 'student' || studentTypeFilter !== 'section' || sectionFilter === 'all' || (u as any).section === sectionFilter
     const searchLower = searchQuery.toLowerCase()
     const matchesSearch = u.name.toLowerCase().includes(searchLower) || u.email.toLowerCase().includes(searchLower) || u.department.toLowerCase().includes(searchLower)
-    return matchesFilter && matchesDept && matchesStudentType && matchesSection && matchesSearch
+    return matchesFilter && matchesDept && matchesYear && matchesSection && matchesStudentType && matchesSearch
   })
 
   const handleAddUser = () => {
@@ -117,7 +119,7 @@ export default function Directory() {
             <Button onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)} variant="outline" className="gap-2 shrink-0 border-slate-200 dark:border-slate-800 bg-white dark:bg-surface relative">
               <Filter size={18} />
               Filters
-              {(deptFilter !== 'all' || filter !== 'all' || studentTypeFilter !== 'all' || sectionFilter !== 'all') && (
+              {(deptFilter !== 'all' || filter !== 'all' || yearFilter !== 'all' || sectionFilter !== 'all' || studentTypeFilter !== 'all') && (
                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-600 rounded-full border-2 border-white dark:border-slate-900" />
               )}
             </Button>
@@ -175,7 +177,7 @@ export default function Directory() {
                       </div>
                     </div>
 
-                    {/* Student Type Column (Only visible if Role === student) */}
+                    {/* Class Year Column (Only visible if Role === student) */}
                     <AnimatePresence>
                       {filter === 'student' && (
                         <motion.div
@@ -184,19 +186,19 @@ export default function Directory() {
                           exit={{ opacity: 0, width: 0 }}
                           className="flex-1 min-w-[150px] overflow-hidden whitespace-nowrap"
                         >
-                          <h4 className="font-semibold text-slate-900 dark:text-white mb-4 text-sm border-b border-slate-100 dark:border-slate-700 pb-2">Student Type</h4>
+                          <h4 className="font-semibold text-slate-900 dark:text-white mb-4 text-sm border-b border-slate-100 dark:border-slate-700 pb-2">Class (Year)</h4>
                           <div className="flex flex-col gap-2">
-                            {['all', 'rep', 'class', 'section'].map(stype => (
+                            {['all', '1st Year', '2nd Year', '3rd Year', '4th Year'].map(year => (
                               <button
-                                key={stype}
-                                onClick={() => setStudentTypeFilter(stype)}
+                                key={year}
+                                onClick={() => setYearFilter(year)}
                                 className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all text-left ${
-                                  studentTypeFilter === stype
+                                  yearFilter === year
                                     ? 'bg-indigo-600 text-white shadow-sm'
                                     : 'bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                                 }`}
                               >
-                                {stype}
+                                {year}
                               </button>
                             ))}
                           </div>
@@ -204,16 +206,16 @@ export default function Directory() {
                       )}
                     </AnimatePresence>
 
-                    {/* Class Section Column (Only visible if Role === student && studentType === section) */}
+                    {/* Section Column (Only visible if Role === student) */}
                     <AnimatePresence>
-                      {filter === 'student' && studentTypeFilter === 'section' && (
+                      {filter === 'student' && (
                         <motion.div
                           initial={{ opacity: 0, width: 0 }}
                           animate={{ opacity: 1, width: 'auto' }}
                           exit={{ opacity: 0, width: 0 }}
                           className="flex-1 min-w-[150px] overflow-hidden whitespace-nowrap"
                         >
-                          <h4 className="font-semibold text-slate-900 dark:text-white mb-4 text-sm border-b border-slate-100 dark:border-slate-700 pb-2">Class Section</h4>
+                          <h4 className="font-semibold text-slate-900 dark:text-white mb-4 text-sm border-b border-slate-100 dark:border-slate-700 pb-2">Section</h4>
                           <div className="flex flex-col gap-2">
                             {['all', 'a', 'b', 'c'].map(sec => (
                               <button
@@ -225,7 +227,36 @@ export default function Directory() {
                                     : 'bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                                 }`}
                               >
-                                {sec === 'all' ? 'All' : `Section ${sec.toUpperCase()}`}
+                                {sec === 'all' ? 'All Sections' : `Section ${sec.toUpperCase()}`}
+                              </button>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Student Type Column (Only visible if Role === student) */}
+                    <AnimatePresence>
+                      {filter === 'student' && (
+                        <motion.div
+                          initial={{ opacity: 0, width: 0 }}
+                          animate={{ opacity: 1, width: 'auto' }}
+                          exit={{ opacity: 0, width: 0 }}
+                          className="flex-1 min-w-[150px] overflow-hidden whitespace-nowrap"
+                        >
+                          <h4 className="font-semibold text-slate-900 dark:text-white mb-4 text-sm border-b border-slate-100 dark:border-slate-700 pb-2">Student Type</h4>
+                          <div className="flex flex-col gap-2">
+                            {['all', 'rep'].map(stype => (
+                              <button
+                                key={stype}
+                                onClick={() => setStudentTypeFilter(stype)}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all text-left ${
+                                  studentTypeFilter === stype
+                                    ? 'bg-indigo-600 text-white shadow-sm'
+                                    : 'bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                }`}
+                              >
+                                {stype === 'all' ? 'All Students' : 'Class Rep'}
                               </button>
                             ))}
                           </div>
