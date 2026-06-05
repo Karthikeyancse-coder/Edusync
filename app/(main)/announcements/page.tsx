@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { motion, Variants, AnimatePresence } from 'framer-motion'
-import { Bell, Calendar, Pin, AlertCircle, FileText, ChevronRight, UploadCloud, File as FileIcon } from 'lucide-react'
+import { Bell, Calendar, Pin, AlertCircle, FileText, ChevronRight, UploadCloud, File as FileIcon, Paperclip, Image as ImageIcon, Mic } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
@@ -78,7 +78,7 @@ export default function Announcements() {
     file: null as any,
     audiences: ['All'] as string[]
   })
-  const [isDragging, setIsDragging] = React.useState(false)
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
 
   const handlePost = () => {
     if (!newAnnouncement.title || !newAnnouncement.content) return
@@ -253,17 +253,6 @@ export default function Announcements() {
                     <option value="urgent">Urgent</option>
                   </select>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Content <span className="text-red-500">*</span></label>
-                  <textarea 
-                    value={newAnnouncement.content} 
-                    onChange={e => setNewAnnouncement(prev => ({ ...prev, content: e.target.value }))}
-                    rows={4}
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-slate-800 dark:bg-slate-950" 
-                    placeholder="Enter announcement details..."
-                  />
-                </div>
-
                 {/* Target Audience */}
                 <div>
                   <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">Target Audience</label>
@@ -282,53 +271,73 @@ export default function Announcements() {
                   </div>
                 </div>
 
-                {/* File Upload Dropzone */}
+                {/* Content Chat Input */}
                 <div>
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Attachment</label>
-                  <div 
-                    className={`relative w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center transition-colors ${
-                      isDragging ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10' : 'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900'
-                    }`}
-                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
-                    onDragLeave={() => setIsDragging(false)}
-                    onDrop={(e) => {
-                      e.preventDefault()
-                      setIsDragging(false)
-                      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                        setNewAnnouncement(prev => ({ ...prev, file: e.dataTransfer.files[0] }))
-                      }
-                    }}
-                  >
-                    {newAnnouncement.file ? (
-                      <div className="absolute top-2 left-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md p-2 flex items-center gap-2 shadow-sm max-w-[90%]">
-                        <FileIcon size={16} className="text-indigo-500 shrink-0" />
-                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">
-                          {newAnnouncement.file.name}
-                        </span>
-                        <button 
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); setNewAnnouncement(prev => ({ ...prev, file: null })) }}
-                          className="text-slate-400 hover:text-red-500 ml-1 shrink-0"
-                        >
-                          <X size={14} />
-                        </button>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">Content & Attachments <span className="text-red-500">*</span></label>
+                  
+                  {newAnnouncement.file && (
+                    <div className="mb-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-2 flex items-center gap-3 shadow-sm max-w-full relative inline-flex">
+                      <div className="w-10 h-10 rounded-md bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center shrink-0">
+                        <FileIcon size={20} className="text-indigo-600 dark:text-indigo-400" />
                       </div>
-                    ) : (
-                      <>
-                        <UploadCloud className="text-slate-400 mb-2" size={24} />
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Drag & drop your file here</p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">or click to browse</p>
-                      </>
-                    )}
+                      <div className="flex-1 min-w-0 pr-6">
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">
+                          {newAnnouncement.file.name}
+                        </p>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Attached File</p>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setNewAnnouncement(prev => ({ ...prev, file: null })) }}
+                        className="absolute top-2 right-2 text-slate-400 hover:text-red-500 bg-white dark:bg-slate-800 rounded-full p-0.5 shadow-sm border border-slate-100 dark:border-slate-700"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="flex items-end gap-2 w-full">
                     <input 
                       type="file" 
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      onChange={e => {
+                      ref={fileInputRef} 
+                      onChange={(e) => {
                         if (e.target.files && e.target.files[0]) {
                           setNewAnnouncement(prev => ({ ...prev, file: e.target.files![0] }))
                         }
                       }}
+                      className="hidden" 
                     />
+                    <Button 
+                      type="button"
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="shrink-0 text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-full h-11 w-11 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
+                    >
+                      <Paperclip size={18} />
+                    </Button>
+                    <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl px-4 py-2 flex items-end focus-within:ring-2 focus-within:ring-indigo-500/50 transition-all shadow-sm">
+                      <textarea
+                        value={newAnnouncement.content}
+                        onChange={e => {
+                          setNewAnnouncement(prev => ({ ...prev, content: e.target.value }))
+                          e.target.style.height = 'auto'
+                          e.target.style.height = `${e.target.scrollHeight}px`
+                        }}
+                        rows={1}
+                        className="w-full bg-transparent text-sm focus-visible:outline-none resize-none py-1.5 dark:text-white"
+                        placeholder="Type announcement details..."
+                        style={{ minHeight: '36px', maxHeight: '120px' }}
+                      />
+                      <div className="flex items-center gap-1 pb-0.5 pl-2">
+                        <Button type="button" variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} className="text-slate-400 hover:text-indigo-600 h-8 w-8 rounded-full">
+                          <ImageIcon size={18} />
+                        </Button>
+                        <Button type="button" variant="ghost" size="icon" className="text-slate-400 hover:text-indigo-600 h-8 w-8 rounded-full">
+                          <Mic size={18} />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
