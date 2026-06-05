@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { motion, Variants, AnimatePresence } from 'framer-motion'
-import { Search, Filter, Mail, Phone, MoreHorizontal, UserPlus, X, Briefcase, GraduationCap, User, Trash2 } from 'lucide-react'
+import { Search, Filter, Mail, Phone, MoreHorizontal, UserPlus, X, Briefcase, GraduationCap, User, Trash2, Pencil } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -44,6 +44,7 @@ export default function Directory() {
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false)
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false)
   const [contextMenu, setContextMenu] = useState<{ id: number; x: number; y: number } | null>(null)
+  const [editingUser, setEditingUser] = useState<any | null>(null)
   const [newUser, setNewUser] = useState({ name: '', role: 'student', department: '', email: '' })
 
   React.useEffect(() => {
@@ -66,19 +67,16 @@ export default function Directory() {
   })
 
   const handleAddUser = () => {
-    if (newUser.name && newUser.email) {
-      const addedUser = {
-        id: Date.now(),
-        name: newUser.name,
-        role: newUser.role,
-        department: newUser.department || 'General',
-        email: newUser.email,
-        status: 'offline'
-      }
-      setUsersData(prev => [addedUser, ...prev])
-      setIsAddUserModalOpen(false)
-      setNewUser({ name: '', role: 'student', department: '', email: '' })
-    }
+    const nextId = Math.max(...usersData.map(u => u.id)) + 1
+    setUsersData(prev => [{ id: nextId, ...newUser, status: 'offline' }, ...prev])
+    setIsAddUserModalOpen(false)
+    setNewUser({ name: '', role: 'student', department: '', email: '' })
+  }
+
+  const handleEditUser = () => {
+    if (!editingUser) return
+    setUsersData(prev => prev.map(u => u.id === editingUser.id ? { ...u, ...editingUser } : u))
+    setEditingUser(null)
   }
 
   const handleDeleteUser = (id: number) => {
@@ -135,17 +133,31 @@ export default function Directory() {
             exit={{ opacity: 0, height: 0, marginBottom: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 p-6">
-              <div className="flex flex-col sm:flex-row gap-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 p-4">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Filter Settings</span>
+                {(deptFilter !== 'all' || filter !== 'all' || yearFilter !== 'all' || sectionFilter !== 'all' || studentTypeFilter !== 'all') && (
+                  <Button variant="ghost" size="sm" onClick={() => {
+                    setFilter('all')
+                    setDeptFilter('all')
+                    setYearFilter('all')
+                    setSectionFilter('all')
+                    setStudentTypeFilter('all')
+                  }} className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 h-7 px-2 text-xs">
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
                     {/* Role Column */}
-                    <div className="flex-1 min-w-[150px]">
-                      <h4 className="font-semibold text-slate-900 dark:text-white mb-4 text-sm border-b border-slate-100 dark:border-slate-700 pb-2">Role</h4>
-                      <div className="flex flex-col gap-2">
+                    <div className="flex-1 min-w-[120px]">
+                      <h4 className="font-semibold text-slate-900 dark:text-white mb-3 text-xs border-b border-slate-100 dark:border-slate-700 pb-2">Role</h4>
+                      <div className="flex flex-col gap-1.5">
                         {['all', 'student', 'faculty', 'hod', 'principal', 'admin'].map(role => (
                           <button
                             key={role}
                             onClick={() => setFilter(role)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all text-left ${
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all text-left ${
                               filter === role
                                 ? 'bg-indigo-600 text-white shadow-sm'
                                 : 'bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
@@ -158,14 +170,14 @@ export default function Directory() {
                     </div>
 
                     {/* Department Column */}
-                    <div className="flex-1 min-w-[150px]">
-                      <h4 className="font-semibold text-slate-900 dark:text-white mb-4 text-sm border-b border-slate-100 dark:border-slate-700 pb-2">Department</h4>
-                      <div className="flex flex-col gap-2">
+                    <div className="flex-1 min-w-[120px]">
+                      <h4 className="font-semibold text-slate-900 dark:text-white mb-3 text-xs border-b border-slate-100 dark:border-slate-700 pb-2">Department</h4>
+                      <div className="flex flex-col gap-1.5">
                         {departments.map(dept => (
                           <button
                             key={dept}
                             onClick={() => setDeptFilter(dept)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all text-left ${
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all text-left ${
                               deptFilter === dept
                                 ? 'bg-indigo-600 text-white shadow-sm'
                                 : 'bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
@@ -184,15 +196,15 @@ export default function Directory() {
                           initial={{ opacity: 0, width: 0 }}
                           animate={{ opacity: 1, width: 'auto' }}
                           exit={{ opacity: 0, width: 0 }}
-                          className="flex-1 min-w-[150px] overflow-hidden whitespace-nowrap"
+                          className="flex-1 min-w-[120px] overflow-hidden whitespace-nowrap"
                         >
-                          <h4 className="font-semibold text-slate-900 dark:text-white mb-4 text-sm border-b border-slate-100 dark:border-slate-700 pb-2">Class (Year)</h4>
-                          <div className="flex flex-col gap-2">
+                          <h4 className="font-semibold text-slate-900 dark:text-white mb-3 text-xs border-b border-slate-100 dark:border-slate-700 pb-2">Class (Year)</h4>
+                          <div className="flex flex-col gap-1.5">
                             {['all', '1st Year', '2nd Year', '3rd Year', '4th Year'].map(year => (
                               <button
                                 key={year}
                                 onClick={() => setYearFilter(year)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all text-left ${
+                                className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all text-left ${
                                   yearFilter === year
                                     ? 'bg-indigo-600 text-white shadow-sm'
                                     : 'bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
@@ -213,15 +225,15 @@ export default function Directory() {
                           initial={{ opacity: 0, width: 0 }}
                           animate={{ opacity: 1, width: 'auto' }}
                           exit={{ opacity: 0, width: 0 }}
-                          className="flex-1 min-w-[150px] overflow-hidden whitespace-nowrap"
+                          className="flex-1 min-w-[120px] overflow-hidden whitespace-nowrap"
                         >
-                          <h4 className="font-semibold text-slate-900 dark:text-white mb-4 text-sm border-b border-slate-100 dark:border-slate-700 pb-2">Section</h4>
-                          <div className="flex flex-col gap-2">
+                          <h4 className="font-semibold text-slate-900 dark:text-white mb-3 text-xs border-b border-slate-100 dark:border-slate-700 pb-2">Section</h4>
+                          <div className="flex flex-col gap-1.5">
                             {['all', 'a', 'b', 'c'].map(sec => (
                               <button
                                 key={sec}
                                 onClick={() => setSectionFilter(sec)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all text-left ${
+                                className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all text-left ${
                                   sectionFilter === sec
                                     ? 'bg-indigo-600 text-white shadow-sm'
                                     : 'bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
@@ -242,15 +254,15 @@ export default function Directory() {
                           initial={{ opacity: 0, width: 0 }}
                           animate={{ opacity: 1, width: 'auto' }}
                           exit={{ opacity: 0, width: 0 }}
-                          className="flex-1 min-w-[150px] overflow-hidden whitespace-nowrap"
+                          className="flex-1 min-w-[120px] overflow-hidden whitespace-nowrap"
                         >
-                          <h4 className="font-semibold text-slate-900 dark:text-white mb-4 text-sm border-b border-slate-100 dark:border-slate-700 pb-2">Student Type</h4>
-                          <div className="flex flex-col gap-2">
+                          <h4 className="font-semibold text-slate-900 dark:text-white mb-3 text-xs border-b border-slate-100 dark:border-slate-700 pb-2">Student Type</h4>
+                          <div className="flex flex-col gap-1.5">
                             {['all', 'rep'].map(stype => (
                               <button
                                 key={stype}
                                 onClick={() => setStudentTypeFilter(stype)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all text-left ${
+                                className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all text-left ${
                                   studentTypeFilter === stype
                                     ? 'bg-indigo-600 text-white shadow-sm'
                                     : 'bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
@@ -412,6 +424,56 @@ export default function Directory() {
         </div>
       )}
 
+      {/* Edit User Modal */}
+      {editingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full relative"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Edit User</h3>
+              <Button variant="ghost" size="icon" onClick={() => setEditingUser(null)} className="-mr-2 -mt-2">
+                <X size={20} />
+              </Button>
+            </div>
+            
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Full Name</label>
+                <Input value={editingUser.name} onChange={e => setEditingUser((prev: any) => prev ? ({ ...prev, name: e.target.value }) : null)} placeholder="e.g. Jane Doe" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Email Address</label>
+                <Input value={editingUser.email} onChange={e => setEditingUser((prev: any) => prev ? ({ ...prev, email: e.target.value }) : null)} placeholder="jane.doe@edusync.edu" type="email" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Department</label>
+                <Input value={editingUser.department} onChange={e => setEditingUser((prev: any) => prev ? ({ ...prev, department: e.target.value }) : null)} placeholder="e.g. Science" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Role</label>
+                <select 
+                  value={editingUser.role} 
+                  onChange={e => setEditingUser((prev: any) => prev ? ({ ...prev, role: e.target.value }) : null)}
+                  className="w-full flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:placeholder:text-slate-400"
+                >
+                  <option value="student">Student</option>
+                  <option value="faculty">Faculty</option>
+                  <option value="hod">HOD</option>
+                  <option value="principal">Principal</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <Button onClick={() => setEditingUser(null)} variant="outline">Cancel</Button>
+              <Button onClick={handleEditUser} className="bg-indigo-600 hover:bg-indigo-700 text-white">Save Changes</Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
       {/* User Profile Modal */}
       {selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm" onClick={() => setSelectedUser(null)}>
@@ -481,6 +543,16 @@ export default function Directory() {
           >
             <button className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2">
               <Mail size={16} /> Message
+            </button>
+            <button 
+              className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+              onClick={() => {
+                const u = usersData.find(u => u.id === contextMenu.id)
+                if (u) setEditingUser(u)
+                setContextMenu(null)
+              }}
+            >
+              <Pencil size={16} /> Edit User
             </button>
             <button 
               className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
