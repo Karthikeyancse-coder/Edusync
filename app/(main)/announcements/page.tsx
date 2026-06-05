@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { motion, Variants, AnimatePresence } from 'framer-motion'
-import { Bell, Calendar, Pin, AlertCircle, FileText, ChevronRight, UploadCloud, File as FileIcon, Paperclip, Image as ImageIcon, Mic, Send } from 'lucide-react'
+import { Bell, Calendar, Pin, AlertCircle, FileText, ChevronRight, UploadCloud, File as FileIcon, Paperclip, Image as ImageIcon, Mic, Send, Edit2, Copy, Trash2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
@@ -80,21 +80,48 @@ export default function Announcements() {
   })
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const [isRecording, setIsRecording] = React.useState(false)
+  const [editingId, setEditingId] = React.useState<number | null>(null)
+  const [contextMenu, setContextMenu] = React.useState<{ id: number, x: number, y: number, announcement: any } | null>(null)
+
+  React.useEffect(() => {
+    const handleGlobalClick = () => setContextMenu(null)
+    window.addEventListener('click', handleGlobalClick)
+    return () => window.removeEventListener('click', handleGlobalClick)
+  }, [])
+
+  const handleContextMenu = (e: React.MouseEvent, announcement: any) => {
+    e.preventDefault()
+    setContextMenu({
+      id: announcement.id,
+      x: e.clientX,
+      y: e.clientY,
+      announcement
+    })
+  }
 
   const handlePost = () => {
     if (!newAnnouncement.title || (!newAnnouncement.content && !isRecording && !newAnnouncement.file)) return
-    const nextId = Math.max(0, ...announcementsData.map(a => a.id)) + 1
-    const announcement = {
-      id: nextId,
-      title: newAnnouncement.title,
-      author: 'Admin Principal',
-      role: 'principal',
-      date: 'Just now',
-      content: newAnnouncement.content,
-      type: newAnnouncement.type,
-      pinned: newAnnouncement.pinned,
+    
+    if (editingId !== null) {
+      setAnnouncementsData(prev => prev.map(a => 
+        a.id === editingId ? { ...a, title: newAnnouncement.title, content: newAnnouncement.content, type: newAnnouncement.type, pinned: newAnnouncement.pinned } : a
+      ))
+      setEditingId(null)
+    } else {
+      const nextId = Math.max(0, ...announcementsData.map(a => a.id)) + 1
+      const announcement = {
+        id: nextId,
+        title: newAnnouncement.title,
+        author: 'Admin Principal',
+        role: 'principal',
+        date: 'Just now',
+        content: newAnnouncement.content,
+        type: newAnnouncement.type,
+        pinned: newAnnouncement.pinned,
+      }
+      setAnnouncementsData(prev => [announcement, ...prev])
     }
-    setAnnouncementsData(prev => [announcement, ...prev])
+    
     setIsPostModalOpen(false)
     setNewAnnouncement({ title: '', content: '', type: 'info', pinned: false, file: null, audiences: ['All'] })
     setIsRecording(false)
@@ -123,6 +150,76 @@ export default function Announcements() {
 
   return (
     <div className="p-6 md:p-8 min-h-[calc(100vh-theme(spacing.16))] md:min-h-screen relative bg-red-300 dark:bg-slate-900 overflow-hidden">
+      {/* Context Menu */}
+      <AnimatePresence>
+        {contextMenu && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.1 }}
+            className="fixed z-[100] bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 py-1 min-w-[160px] overflow-hidden"
+            style={{ 
+              left: Math.min(contextMenu.x, typeof window !== 'undefined' ? window.innerWidth - 180 : contextMenu.x), 
+              top: Math.min(contextMenu.y, typeof window !== 'undefined' ? window.innerHeight - 200 : contextMenu.y) 
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 flex items-center gap-2"
+              onClick={() => {
+                const a = contextMenu.announcement
+                setNewAnnouncement({
+                  title: a.title,
+                  content: a.content,
+                  type: a.type,
+                  pinned: a.pinned || false,
+                  file: null,
+                  audiences: ['All']
+                })
+                setEditingId(a.id)
+                setIsPostModalOpen(true)
+                setContextMenu(null)
+              }}
+            >
+              <Edit2 size={16} className="text-indigo-500" />
+              Edit Announcement
+            </button>
+            <button 
+              className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 flex items-center gap-2"
+              onClick={() => {
+                setAnnouncementsData(prev => prev.map(a => a.id === contextMenu.id ? { ...a, pinned: !a.pinned } : a))
+                setContextMenu(null)
+              }}
+            >
+              <Pin size={16} className="text-orange-500" />
+              {contextMenu.announcement.pinned ? 'Unpin' : 'Pin to Top'}
+            </button>
+            <button 
+              className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 flex items-center gap-2"
+              onClick={() => {
+                navigator.clipboard.writeText(contextMenu.announcement.content)
+                setContextMenu(null)
+              }}
+            >
+              <Copy size={16} className="text-slate-500" />
+              Copy Text
+            </button>
+            <div className="h-px bg-slate-200 dark:bg-slate-700 my-1"></div>
+            <button 
+              className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center gap-2"
+              onClick={() => {
+                setAnnouncementsData(prev => prev.filter(a => a.id !== contextMenu.id))
+                setContextMenu(null)
+              }}
+            >
+              <Trash2 size={16} />
+              Delete
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="max-w-4xl mx-auto space-y-8 pb-24 relative z-10">
       {/* Header Section */}
       <motion.div 
@@ -136,7 +233,7 @@ export default function Announcements() {
             Stay updated with the latest news and important notices.
           </p>
         </div>
-        <Button onClick={() => setIsPostModalOpen(true)} className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">
+        <Button onClick={() => { setEditingId(null); setIsPostModalOpen(true); }} className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">
           <Bell size={18} />
           Post Announcement
         </Button>
@@ -166,7 +263,9 @@ export default function Announcements() {
                 <div className="w-1.5 h-1.5 bg-white rounded-full" />
               </div>
 
-              <Card className={`group relative overflow-hidden bg-white/50 dark:bg-surface/50 backdrop-blur-sm transition-all duration-300 hover:shadow-md ${
+              <Card 
+                onContextMenu={(e) => handleContextMenu(e, announcement)}
+                className={`group relative overflow-hidden bg-white/50 dark:bg-surface/50 backdrop-blur-sm transition-all duration-300 hover:shadow-md ${
                 isUrgent ? 'border-red-200 dark:border-red-900/50' : 'border-slate-200/60 dark:border-slate-800/60'
               }`}>
                 {/* Urgent Top Bar */}
@@ -309,7 +408,7 @@ export default function Announcements() {
                       }}
                       className="hidden" 
                     />
-                    <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl pl-2 pr-4 py-2 flex items-end focus-within:ring-2 focus-within:ring-indigo-500/50 transition-all shadow-sm w-full">
+                    <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl pl-3 pr-4 py-3 flex items-end focus-within:ring-2 focus-within:ring-indigo-500/50 transition-all shadow-sm w-full">
                       <div className="flex items-center pb-0.5 mr-1">
                         <Button 
                           type="button"
@@ -342,10 +441,10 @@ export default function Announcements() {
                             e.target.style.height = 'auto'
                             e.target.style.height = `${e.target.scrollHeight}px`
                           }}
-                          rows={1}
-                          className="w-full bg-transparent text-sm focus-visible:outline-none resize-none py-1.5 dark:text-white"
+                          rows={3}
+                          className="w-full bg-transparent text-[15px] focus-visible:outline-none resize-none py-1.5 dark:text-white"
                           placeholder="Type announcement details..."
-                          style={{ minHeight: '36px', maxHeight: '120px' }}
+                          style={{ minHeight: '80px', maxHeight: '240px' }}
                         />
                       )}
                       <div className="flex items-center gap-1 pb-0.5 pl-2 shrink-0">
