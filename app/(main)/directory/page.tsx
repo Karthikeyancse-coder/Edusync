@@ -391,19 +391,19 @@ export default function Directory() {
             
             <div className="space-y-4 mb-6">
               <div>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Full Name</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Full Name <span className="text-red-500">*</span></label>
                 <Input value={newUser.name} onChange={e => setNewUser(prev => ({ ...prev, name: e.target.value }))} placeholder="e.g. Jane Doe" />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Email Address</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Email Address <span className="text-red-500">*</span></label>
                 <Input value={newUser.email} onChange={e => setNewUser(prev => ({ ...prev, email: e.target.value }))} placeholder="jane.doe@edusync.edu" type="email" />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Department</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Department <span className="text-red-500">*</span></label>
                 <Input value={newUser.department} onChange={e => setNewUser(prev => ({ ...prev, department: e.target.value }))} placeholder="e.g. Science" />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Role</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Role <span className="text-red-500">*</span></label>
                 <select 
                   value={newUser.role} 
                   onChange={e => setNewUser(prev => ({ ...prev, role: e.target.value }))}
@@ -418,7 +418,7 @@ export default function Directory() {
               {newUser.role === 'student' && (
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div>
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Year</label>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Year <span className="text-red-500">*</span></label>
                     <select value={newUser.year} onChange={e => setNewUser(prev => ({ ...prev, year: e.target.value }))} className="w-full flex h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950">
                       <option value="1st Year">1st Year</option>
                       <option value="2nd Year">2nd Year</option>
@@ -427,7 +427,7 @@ export default function Directory() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Section</label>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Section <span className="text-red-500">*</span></label>
                     <select value={newUser.section} onChange={e => setNewUser(prev => ({ ...prev, section: e.target.value }))} className="w-full flex h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950">
                       <option value="a">Section A</option>
                       <option value="b">Section B</option>
@@ -435,7 +435,7 @@ export default function Directory() {
                     </select>
                   </div>
                   <div className="col-span-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Student Type</label>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Student Type <span className="text-red-500">*</span></label>
                     <select value={newUser.studentType} onChange={e => setNewUser(prev => ({ ...prev, studentType: e.target.value }))} className="w-full flex h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950">
                       <option value="all">Regular Student</option>
                       <option value="rep">Class Representative</option>
@@ -446,7 +446,7 @@ export default function Directory() {
             </div>
             <div className="flex gap-3 justify-end">
               <Button onClick={() => setIsAddUserModalOpen(false)} variant="outline">Cancel</Button>
-              <Button onClick={handleAddUser} className="bg-indigo-600 hover:bg-indigo-700 text-white">Add User</Button>
+              <Button onClick={handleAddUser} disabled={!newUser.name || !newUser.email || !newUser.department} className="bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50 disabled:cursor-not-allowed">Add User</Button>
             </div>
           </motion.div>
         </div>
@@ -468,19 +468,19 @@ export default function Directory() {
             
             <div className="space-y-4 mb-6">
               <div>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Full Name</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Full Name <span className="text-red-500">*</span></label>
                 <Input value={editingUser.name} onChange={e => setEditingUser((prev: any) => prev ? ({ ...prev, name: e.target.value }) : null)} placeholder="e.g. Jane Doe" />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Email Address</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Email Address <span className="text-red-500">*</span></label>
                 <Input value={editingUser.email} onChange={e => setEditingUser((prev: any) => prev ? ({ ...prev, email: e.target.value }) : null)} placeholder="jane.doe@edusync.edu" type="email" />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Department</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Department <span className="text-red-500">*</span></label>
                 <Input value={editingUser.department} onChange={e => setEditingUser((prev: any) => prev ? ({ ...prev, department: e.target.value }) : null)} placeholder="e.g. Science" />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Role</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Role <span className="text-red-500">*</span></label>
                 <select 
                   value={editingUser.role} 
                   onChange={e => setEditingUser((prev: any) => prev ? ({ ...prev, role: e.target.value }) : null)}
@@ -496,7 +496,7 @@ export default function Directory() {
               {editingUser.role === 'student' && (
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div>
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Year</label>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Year <span className="text-red-500">*</span></label>
                     <select value={editingUser.year || '1st Year'} onChange={e => setEditingUser((prev: any) => prev ? ({ ...prev, year: e.target.value }) : null)} className="w-full flex h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950">
                       <option value="1st Year">1st Year</option>
                       <option value="2nd Year">2nd Year</option>
@@ -505,7 +505,7 @@ export default function Directory() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Section</label>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Section <span className="text-red-500">*</span></label>
                     <select value={editingUser.section || 'a'} onChange={e => setEditingUser((prev: any) => prev ? ({ ...prev, section: e.target.value }) : null)} className="w-full flex h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950">
                       <option value="a">Section A</option>
                       <option value="b">Section B</option>
@@ -513,7 +513,7 @@ export default function Directory() {
                     </select>
                   </div>
                   <div className="col-span-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Student Type</label>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Student Type <span className="text-red-500">*</span></label>
                     <select value={editingUser.studentType || 'all'} onChange={e => setEditingUser((prev: any) => prev ? ({ ...prev, studentType: e.target.value }) : null)} className="w-full flex h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950">
                       <option value="all">Regular Student</option>
                       <option value="rep">Class Representative</option>
@@ -524,7 +524,7 @@ export default function Directory() {
             </div>
             <div className="flex gap-3 justify-end">
               <Button onClick={() => setEditingUser(null)} variant="outline">Cancel</Button>
-              <Button onClick={handleEditUser} className="bg-indigo-600 hover:bg-indigo-700 text-white">Save Changes</Button>
+              <Button onClick={handleEditUser} disabled={!editingUser.name || !editingUser.email || !editingUser.department} className="bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50 disabled:cursor-not-allowed">Save Changes</Button>
             </div>
           </motion.div>
         </div>
