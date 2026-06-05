@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { motion, Variants, AnimatePresence } from 'framer-motion'
-import { Bell, Calendar, Pin, AlertCircle, FileText, ChevronRight, UploadCloud, File as FileIcon, Paperclip, Image as ImageIcon, Mic } from 'lucide-react'
+import { Bell, Calendar, Pin, AlertCircle, FileText, ChevronRight, UploadCloud, File as FileIcon, Paperclip, Image as ImageIcon, Mic, Send } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
@@ -79,9 +79,10 @@ export default function Announcements() {
     audiences: ['All'] as string[]
   })
   const fileInputRef = React.useRef<HTMLInputElement>(null)
+  const [isRecording, setIsRecording] = React.useState(false)
 
   const handlePost = () => {
-    if (!newAnnouncement.title || !newAnnouncement.content) return
+    if (!newAnnouncement.title || (!newAnnouncement.content && !isRecording && !newAnnouncement.file)) return
     const nextId = Math.max(0, ...announcementsData.map(a => a.id)) + 1
     const announcement = {
       id: nextId,
@@ -96,6 +97,7 @@ export default function Announcements() {
     setAnnouncementsData(prev => [announcement, ...prev])
     setIsPostModalOpen(false)
     setNewAnnouncement({ title: '', content: '', type: 'info', pinned: false, file: null, audiences: ['All'] })
+    setIsRecording(false)
   }
 
   const toggleAudience = (aud: string) => {
@@ -319,24 +321,52 @@ export default function Announcements() {
                           <Paperclip size={18} />
                         </Button>
                       </div>
-                      <textarea
-                        value={newAnnouncement.content}
-                        onChange={e => {
-                          setNewAnnouncement(prev => ({ ...prev, content: e.target.value }))
-                          e.target.style.height = 'auto'
-                          e.target.style.height = `${e.target.scrollHeight}px`
-                        }}
-                        rows={1}
-                        className="w-full bg-transparent text-sm focus-visible:outline-none resize-none py-1.5 dark:text-white"
-                        placeholder="Type announcement details..."
-                        style={{ minHeight: '36px', maxHeight: '120px' }}
-                      />
+                      {isRecording ? (
+                        <motion.div 
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="flex-1 min-w-0 flex items-center gap-2 md:gap-3 text-red-500 font-medium py-1.5 pl-2"
+                        >
+                          <motion.div 
+                            animate={{ scale: [1, 1.2, 1], opacity: [1, 0.5, 1] }}
+                            transition={{ repeat: Infinity, duration: 1.5 }}
+                            className="w-2.5 h-2.5 md:w-3 md:h-3 shrink-0 bg-red-500 rounded-full"
+                          />
+                          <span className="truncate text-sm md:text-[15px]">Recording... 0:03</span>
+                        </motion.div>
+                      ) : (
+                        <textarea
+                          value={newAnnouncement.content}
+                          onChange={e => {
+                            setNewAnnouncement(prev => ({ ...prev, content: e.target.value }))
+                            e.target.style.height = 'auto'
+                            e.target.style.height = `${e.target.scrollHeight}px`
+                          }}
+                          rows={1}
+                          className="w-full bg-transparent text-sm focus-visible:outline-none resize-none py-1.5 dark:text-white"
+                          placeholder="Type announcement details..."
+                          style={{ minHeight: '36px', maxHeight: '120px' }}
+                        />
+                      )}
                       <div className="flex items-center gap-1 pb-0.5 pl-2 shrink-0">
-                        <Button type="button" variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} className="text-slate-400 hover:text-indigo-600 h-8 w-8 rounded-full">
-                          <ImageIcon size={18} />
-                        </Button>
-                        <Button type="button" variant="ghost" size="icon" className="text-slate-400 hover:text-indigo-600 h-8 w-8 rounded-full">
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => setIsRecording(!isRecording)}
+                          className={`rounded-full h-8 w-8 transition-colors ${isRecording ? 'text-red-500 bg-red-50 dark:bg-red-500/10' : 'text-slate-400 hover:text-indigo-600'}`}
+                        >
                           <Mic size={18} />
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={handlePost}
+                          disabled={!newAnnouncement.title || (!newAnnouncement.content && !isRecording && !newAnnouncement.file)}
+                          className="text-white bg-indigo-600 hover:bg-indigo-700 h-8 w-8 rounded-full disabled:opacity-50 transition-colors"
+                        >
+                          <Send size={14} className="ml-0.5" />
                         </Button>
                       </div>
                     </div>
@@ -353,17 +383,6 @@ export default function Announcements() {
                   />
                   <label htmlFor="pinned" className="text-sm font-medium text-slate-700 dark:text-slate-300">Pin to top of timeline</label>
                 </div>
-              </div>
-
-              <div className="flex justify-end gap-3">
-                <Button variant="outline" onClick={() => setIsPostModalOpen(false)}>Cancel</Button>
-                <Button 
-                  onClick={handlePost} 
-                  disabled={!newAnnouncement.title || !newAnnouncement.content}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50"
-                >
-                  Post
-                </Button>
               </div>
             </motion.div>
           </div>
