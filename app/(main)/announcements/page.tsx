@@ -2,8 +2,8 @@
 
 import React from 'react'
 import { motion, Variants, AnimatePresence } from 'framer-motion'
-import { Bell, Calendar, Pin, AlertCircle, FileText, ChevronRight } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
+import { Bell, Calendar, Pin, AlertCircle, FileText, ChevronRight, UploadCloud, File as FileIcon } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
 
@@ -75,21 +75,10 @@ export default function Announcements() {
     content: '',
     type: 'info',
     pinned: false,
+    file: null as any,
+    audiences: ['All'] as string[]
   })
-  
-  const [bubbles, setBubbles] = React.useState<any[]>([])
-  
-  React.useEffect(() => {
-    const newBubbles = Array.from({ length: 20 }).map((_, i) => ({
-      id: i,
-      xOffset: Math.random() * 100,
-      size: Math.random() * 40 + 20,
-      duration: Math.random() * 15 + 10,
-      delay: Math.random() * 10,
-      rotate: Math.random() * 90 - 45
-    }))
-    setBubbles(newBubbles)
-  }, [])
+  const [isDragging, setIsDragging] = React.useState(false)
 
   const handlePost = () => {
     if (!newAnnouncement.title || !newAnnouncement.content) return
@@ -106,7 +95,19 @@ export default function Announcements() {
     }
     setAnnouncementsData(prev => [announcement, ...prev])
     setIsPostModalOpen(false)
-    setNewAnnouncement({ title: '', content: '', type: 'info', pinned: false })
+    setNewAnnouncement({ title: '', content: '', type: 'info', pinned: false, file: null, audiences: ['All'] })
+  }
+
+  const toggleAudience = (aud: string) => {
+    setNewAnnouncement(prev => {
+      let next = [...prev.audiences]
+      if (aud === 'All') return { ...prev, audiences: ['All'] }
+      next = next.filter(a => a !== 'All')
+      if (next.includes(aud)) next = next.filter(a => a !== aud)
+      else next.push(aud)
+      if (next.length === 0) next = ['All']
+      return { ...prev, audiences: next }
+    })
   }
 
   const toggleExpand = (id: number) => {
@@ -119,26 +120,7 @@ export default function Announcements() {
   }
 
   return (
-    <div className="p-6 md:p-8 min-h-[calc(100vh-theme(spacing.16))] md:min-h-screen relative bg-red-50 dark:bg-slate-900 overflow-hidden">
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-red-100 via-white to-rose-100 dark:from-slate-950 dark:via-slate-900 dark:to-red-950/20" />
-        {bubbles.map(bubble => (
-          <motion.div
-            key={bubble.id}
-            initial={{ y: '100vh', x: `${bubble.xOffset}vw`, opacity: 0.1, scale: 0.5 }}
-            animate={{ 
-              y: '-20vh', 
-              x: `${bubble.xOffset + bubble.rotate}vw`, 
-              opacity: [0.1, 0.4, 0.1],
-              rotate: 360
-            }}
-            transition={{ duration: bubble.duration, delay: bubble.delay, repeat: Infinity, ease: 'linear' }}
-            className="absolute bottom-0 rounded-full bg-gradient-to-tr from-red-300/30 to-rose-300/30 dark:from-red-600/20 dark:to-rose-600/20"
-            style={{ width: bubble.size, height: bubble.size }}
-          />
-        ))}
-      </div>
-      
+    <div className="p-6 md:p-8 min-h-[calc(100vh-theme(spacing.16))] md:min-h-screen relative bg-red-300 dark:bg-slate-900 overflow-hidden">
       <div className="max-w-4xl mx-auto space-y-8 pb-24 relative z-10">
       {/* Header Section */}
       <motion.div 
@@ -281,7 +263,76 @@ export default function Announcements() {
                     placeholder="Enter announcement details..."
                   />
                 </div>
-                <div className="flex items-center gap-2">
+
+                {/* Target Audience */}
+                <div>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">Target Audience</label>
+                  <div className="flex flex-wrap gap-4">
+                    {['All', 'Student', 'Faculty', 'HOD'].map(role => (
+                      <label key={role} className="flex items-center gap-2 cursor-pointer">
+                        <input 
+                          type="checkbox"
+                          checked={newAnnouncement.audiences.includes(role)}
+                          onChange={() => toggleAudience(role)}
+                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <span className="text-sm text-slate-700 dark:text-slate-300">{role}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* File Upload Dropzone */}
+                <div>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Attachment</label>
+                  <div 
+                    className={`relative w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center transition-colors ${
+                      isDragging ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10' : 'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900'
+                    }`}
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={(e) => {
+                      e.preventDefault()
+                      setIsDragging(false)
+                      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        setNewAnnouncement(prev => ({ ...prev, file: e.dataTransfer.files[0] }))
+                      }
+                    }}
+                  >
+                    {newAnnouncement.file ? (
+                      <div className="absolute top-2 left-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md p-2 flex items-center gap-2 shadow-sm max-w-[90%]">
+                        <FileIcon size={16} className="text-indigo-500 shrink-0" />
+                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">
+                          {newAnnouncement.file.name}
+                        </span>
+                        <button 
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setNewAnnouncement(prev => ({ ...prev, file: null })) }}
+                          className="text-slate-400 hover:text-red-500 ml-1 shrink-0"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <UploadCloud className="text-slate-400 mb-2" size={24} />
+                        <p className="text-sm text-slate-500 dark:text-slate-400">Drag & drop your file here</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">or click to browse</p>
+                      </>
+                    )}
+                    <input 
+                      type="file" 
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      onChange={e => {
+                        if (e.target.files && e.target.files[0]) {
+                          setNewAnnouncement(prev => ({ ...prev, file: e.target.files![0] }))
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                   <input 
                     type="checkbox" 
                     id="pinned"
@@ -289,7 +340,7 @@ export default function Announcements() {
                     onChange={e => setNewAnnouncement(prev => ({ ...prev, pinned: e.target.checked }))}
                     className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                   />
-                  <label htmlFor="pinned" className="text-sm text-slate-700 dark:text-slate-300">Pin to top</label>
+                  <label htmlFor="pinned" className="text-sm font-medium text-slate-700 dark:text-slate-300">Pin to top of timeline</label>
                 </div>
               </div>
 
