@@ -307,16 +307,18 @@ export default function Announcements() {
                       }}
                       className="hidden" 
                     />
-                    <Button 
-                      type="button"
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => fileInputRef.current?.click()}
-                      className="shrink-0 text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-full h-11 w-11 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
-                    >
-                      <Paperclip size={18} />
-                    </Button>
-                    <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl px-4 py-2 flex items-end focus-within:ring-2 focus-within:ring-indigo-500/50 transition-all shadow-sm">
+                    <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl pl-2 pr-4 py-2 flex items-end focus-within:ring-2 focus-within:ring-indigo-500/50 transition-all shadow-sm w-full">
+                      <div className="flex items-center pb-0.5 mr-1">
+                        <Button 
+                          type="button"
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => fileInputRef.current?.click()}
+                          className="shrink-0 text-slate-400 hover:text-indigo-600 rounded-full h-8 w-8"
+                        >
+                          <Paperclip size={18} />
+                        </Button>
+                      </div>
                       <textarea
                         value={newAnnouncement.content}
                         onChange={e => {
@@ -329,7 +331,7 @@ export default function Announcements() {
                         placeholder="Type announcement details..."
                         style={{ minHeight: '36px', maxHeight: '120px' }}
                       />
-                      <div className="flex items-center gap-1 pb-0.5 pl-2">
+                      <div className="flex items-center gap-1 pb-0.5 pl-2 shrink-0">
                         <Button type="button" variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} className="text-slate-400 hover:text-indigo-600 h-8 w-8 rounded-full">
                           <ImageIcon size={18} />
                         </Button>
