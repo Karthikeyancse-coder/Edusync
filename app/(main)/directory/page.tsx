@@ -400,7 +400,7 @@ export default function Directory() {
               </div>
               <div>
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Department <span className="text-red-500">*</span></label>
-                <Input value={newUser.department} onChange={e => setNewUser(prev => ({ ...prev, department: e.target.value }))} placeholder="e.g. Science" />
+                <Input list="department-options" value={newUser.department} onChange={e => setNewUser(prev => ({ ...prev, department: e.target.value }))} placeholder="e.g. Science" />
               </div>
               <div>
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Role <span className="text-red-500">*</span></label>
@@ -477,7 +477,7 @@ export default function Directory() {
               </div>
               <div>
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Department <span className="text-red-500">*</span></label>
-                <Input value={editingUser.department} onChange={e => setEditingUser((prev: any) => prev ? ({ ...prev, department: e.target.value }) : null)} placeholder="e.g. Science" />
+                <Input list="department-options" value={editingUser.department} onChange={e => setEditingUser((prev: any) => prev ? ({ ...prev, department: e.target.value }) : null)} placeholder="e.g. Science" />
               </div>
               <div>
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Role <span className="text-red-500">*</span></label>
@@ -633,6 +633,17 @@ export default function Directory() {
         )}
       </AnimatePresence>
 
+      <datalist id="department-options">
+        <option value="Computer Science Engineering (CSE)" />
+        <option value="Electronics and Communication Engineering (ECE)" />
+        <option value="Electrical Engineering" />
+        <option value="Mechanical Engineering" />
+        <option value="Civil Engineering" />
+        <option value="Mathematics" />
+        <option value="Physics" />
+        <option value="Chemistry" />
+        <option value="Administration" />
+      </datalist>
       </div>
     </div>
   )
