@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { motion, Variants, AnimatePresence } from 'framer-motion'
-import { Search, Filter, Mail, Phone, MoreHorizontal, UserPlus, X, Briefcase, GraduationCap, User, Trash2, Pencil } from 'lucide-react'
+import { Search, Filter, Mail, Phone, MoreHorizontal, UserPlus, X, Briefcase, GraduationCap, User, Trash2, Pencil, ChevronLeft } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -46,6 +46,7 @@ export default function Directory() {
   const [contextMenu, setContextMenu] = useState<{ id: number; x: number; y: number } | null>(null)
   const [editingUser, setEditingUser] = useState<any | null>(null)
   const [newUser, setNewUser] = useState({ name: '', role: 'student', department: '', email: '', year: '1st Year', section: 'a', studentType: 'all' })
+  const [mobileFilterStep, setMobileFilterStep] = useState<'role' | 'department' | 'class' | 'section' | 'type'>('role')
 
   React.useEffect(() => {
     const handleGlobalClick = () => setContextMenu(null)
@@ -143,20 +144,24 @@ export default function Directory() {
                     setYearFilter('all')
                     setSectionFilter('all')
                     setStudentTypeFilter('all')
-                  }} className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 h-7 px-2 text-xs">
+                    setMobileFilterStep('role')
+                  }} className="text-xs text-indigo-600 dark:text-indigo-400 font-medium hover:underline">
                     Clear Filters
                   </Button>
                 )}
               </div>
               <div className="flex flex-col sm:flex-row gap-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
                     {/* Role Column */}
-                    <div className="flex-1 min-w-[120px]">
+                    <div className={`flex-1 min-w-[120px] ${mobileFilterStep !== 'role' ? 'hidden sm:block' : ''}`}>
                       <h4 className="font-semibold text-slate-900 dark:text-white mb-3 text-xs border-b border-slate-100 dark:border-slate-700 pb-2">Role</h4>
                       <div className="flex flex-col gap-1.5">
                         {['all', 'student', 'faculty', 'hod', 'principal', 'admin'].map(role => (
                           <button
                             key={role}
-                            onClick={() => setFilter(role)}
+                            onClick={() => {
+                              setFilter(role)
+                              setMobileFilterStep('department')
+                            }}
                             className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all text-left ${
                               filter === role
                                 ? 'bg-indigo-600 text-white shadow-sm'
@@ -170,13 +175,21 @@ export default function Directory() {
                     </div>
 
                     {/* Department Column */}
-                    <div className="flex-1 min-w-[120px]">
-                      <h4 className="font-semibold text-slate-900 dark:text-white mb-3 text-xs border-b border-slate-100 dark:border-slate-700 pb-2">Department</h4>
+                    <div className={`flex-1 min-w-[120px] ${mobileFilterStep !== 'department' ? 'hidden sm:block' : ''}`}>
+                      <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2 mb-3">
+                        <button className="sm:hidden text-slate-500 hover:text-indigo-600" onClick={() => setMobileFilterStep('role')}>
+                          <ChevronLeft size={16} />
+                        </button>
+                        <h4 className="font-semibold text-slate-900 dark:text-white text-xs">Department</h4>
+                      </div>
                       <div className="flex flex-col gap-1.5">
                         {departments.map(dept => (
                           <button
                             key={dept}
-                            onClick={() => setDeptFilter(dept)}
+                            onClick={() => {
+                              setDeptFilter(dept)
+                              if (filter === 'student') setMobileFilterStep('class')
+                            }}
                             className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all text-left ${
                               deptFilter === dept
                                 ? 'bg-indigo-600 text-white shadow-sm'
@@ -196,14 +209,22 @@ export default function Directory() {
                           initial={{ opacity: 0, width: 0 }}
                           animate={{ opacity: 1, width: 'auto' }}
                           exit={{ opacity: 0, width: 0 }}
-                          className="flex-1 min-w-[120px] overflow-hidden whitespace-nowrap"
+                          className={`flex-1 min-w-[120px] overflow-hidden whitespace-nowrap ${mobileFilterStep !== 'class' ? 'hidden sm:block' : ''}`}
                         >
-                          <h4 className="font-semibold text-slate-900 dark:text-white mb-3 text-xs border-b border-slate-100 dark:border-slate-700 pb-2">Class (Year)</h4>
+                          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2 mb-3">
+                            <button className="sm:hidden text-slate-500 hover:text-indigo-600" onClick={() => setMobileFilterStep('department')}>
+                              <ChevronLeft size={16} />
+                            </button>
+                            <h4 className="font-semibold text-slate-900 dark:text-white text-xs">Class (Year)</h4>
+                          </div>
                           <div className="flex flex-col gap-1.5">
                             {['all', '1st Year', '2nd Year', '3rd Year', '4th Year'].map(year => (
                               <button
                                 key={year}
-                                onClick={() => setYearFilter(year)}
+                                onClick={() => {
+                                  setYearFilter(year)
+                                  setMobileFilterStep('section')
+                                }}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all text-left ${
                                   yearFilter === year
                                     ? 'bg-indigo-600 text-white shadow-sm'
@@ -225,14 +246,22 @@ export default function Directory() {
                           initial={{ opacity: 0, width: 0 }}
                           animate={{ opacity: 1, width: 'auto' }}
                           exit={{ opacity: 0, width: 0 }}
-                          className="flex-1 min-w-[120px] overflow-hidden whitespace-nowrap"
+                          className={`flex-1 min-w-[120px] overflow-hidden whitespace-nowrap ${mobileFilterStep !== 'section' ? 'hidden sm:block' : ''}`}
                         >
-                          <h4 className="font-semibold text-slate-900 dark:text-white mb-3 text-xs border-b border-slate-100 dark:border-slate-700 pb-2">Section</h4>
+                          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2 mb-3">
+                            <button className="sm:hidden text-slate-500 hover:text-indigo-600" onClick={() => setMobileFilterStep('class')}>
+                              <ChevronLeft size={16} />
+                            </button>
+                            <h4 className="font-semibold text-slate-900 dark:text-white text-xs">Section</h4>
+                          </div>
                           <div className="flex flex-col gap-1.5">
                             {['all', 'a', 'b', 'c'].map(sec => (
                               <button
                                 key={sec}
-                                onClick={() => setSectionFilter(sec)}
+                                onClick={() => {
+                                  setSectionFilter(sec)
+                                  setMobileFilterStep('type')
+                                }}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all text-left ${
                                   sectionFilter === sec
                                     ? 'bg-indigo-600 text-white shadow-sm'
@@ -254,9 +283,14 @@ export default function Directory() {
                           initial={{ opacity: 0, width: 0 }}
                           animate={{ opacity: 1, width: 'auto' }}
                           exit={{ opacity: 0, width: 0 }}
-                          className="flex-1 min-w-[120px] overflow-hidden whitespace-nowrap"
+                          className={`flex-1 min-w-[120px] overflow-hidden whitespace-nowrap ${mobileFilterStep !== 'type' ? 'hidden sm:block' : ''}`}
                         >
-                          <h4 className="font-semibold text-slate-900 dark:text-white mb-3 text-xs border-b border-slate-100 dark:border-slate-700 pb-2">Student Type</h4>
+                          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2 mb-3">
+                            <button className="sm:hidden text-slate-500 hover:text-indigo-600" onClick={() => setMobileFilterStep('section')}>
+                              <ChevronLeft size={16} />
+                            </button>
+                            <h4 className="font-semibold text-slate-900 dark:text-white text-xs">Student Type</h4>
+                          </div>
                           <div className="flex flex-col gap-1.5">
                             {['all', 'rep'].map(stype => (
                               <button
