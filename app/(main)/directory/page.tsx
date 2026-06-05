@@ -380,7 +380,7 @@ export default function Directory() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full relative"
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full relative max-h-[90vh] overflow-y-auto scrollbar-thin"
           >
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-slate-900 dark:text-white">Add New User</h3>
@@ -416,7 +416,7 @@ export default function Directory() {
                 </select>
               </div>
               {newUser.role === 'student' && (
-                <div className="grid grid-cols-2 gap-4 mt-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Year <span className="text-red-500">*</span></label>
                     <select value={newUser.year} onChange={e => setNewUser(prev => ({ ...prev, year: e.target.value }))} className="w-full flex h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950">
@@ -457,7 +457,7 @@ export default function Directory() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full relative"
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full relative max-h-[90vh] overflow-y-auto scrollbar-thin"
           >
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-slate-900 dark:text-white">Edit User</h3>
@@ -494,7 +494,7 @@ export default function Directory() {
                 </select>
               </div>
               {editingUser.role === 'student' && (
-                <div className="grid grid-cols-2 gap-4 mt-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Year <span className="text-red-500">*</span></label>
                     <select value={editingUser.year || '1st Year'} onChange={e => setEditingUser((prev: any) => prev ? ({ ...prev, year: e.target.value }) : null)} className="w-full flex h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950">
@@ -633,7 +633,7 @@ export default function Directory() {
         )}
       </AnimatePresence>
 
-      <datalist id="department-options">
+      <datalist id="department-options" className="hidden">
         <option value="Computer Science Engineering (CSE)" />
         <option value="Electronics and Communication Engineering (ECE)" />
         <option value="Electrical Engineering" />
