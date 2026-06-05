@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { motion, Variants, AnimatePresence } from 'framer-motion'
-import { Users, MoreHorizontal, UserPlus, BookOpen, MessageSquare, Search, Edit2, Trash2, Pin, Info } from 'lucide-react'
+import { Users, MoreHorizontal, UserPlus, BookOpen, MessageSquare, Search, Edit2, Trash2, Pin, Info, Camera } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
@@ -31,18 +31,31 @@ const itemVariants: Variants = {
   show: { opacity: 1, scale: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
 }
 
+type GroupData = {
+  id: number
+  name: string
+  instructor: string
+  members: number
+  type: string
+  color: string
+  pinned: boolean
+  imageUrl?: string
+}
+
 export default function Groups() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = React.useState('')
   const [filterType, setFilterType] = React.useState('All')
-  const [groupsData, setGroupsData] = React.useState(groups)
+  const [groupsData, setGroupsData] = React.useState<GroupData[]>(groups)
   const [menuOpen, setMenuOpen] = React.useState<number | null>(null)
   const [deleteModalOpen, setDeleteModalOpen] = React.useState<number | null>(null)
   const [renameModalOpen, setRenameModalOpen] = React.useState<number | null>(null)
   const [renameInput, setRenameInput] = React.useState('')
   const [infoModalOpen, setInfoModalOpen] = React.useState<number | null>(null)
   const [createModalOpen, setCreateModalOpen] = React.useState(false)
-  const [newGroupInput, setNewGroupInput] = React.useState({ name: '', instructor: '', type: 'Course' })
+  const [newGroupInput, setNewGroupInput] = React.useState({ name: '', instructor: '', type: 'Course', imageUrl: '' })
+
+  const dynamicFilterTypes = ['All', ...Array.from(new Set(groupsData.map(g => g.type)))]
 
   React.useEffect(() => {
     const handleGlobalClick = () => setMenuOpen(null)
@@ -94,13 +107,14 @@ export default function Groups() {
         name: newGroupInput.name,
         instructor: newGroupInput.instructor,
         members: 1,
-        type: newGroupInput.type,
+        type: newGroupInput.type || 'Course',
         color: 'bg-emerald-500',
-        pinned: false
+        pinned: false,
+        imageUrl: newGroupInput.imageUrl || undefined
       }
       setGroupsData(prev => [newGroup, ...prev])
       setCreateModalOpen(false)
-      setNewGroupInput({ name: '', instructor: '', type: 'Course' })
+      setNewGroupInput({ name: '', instructor: '', type: 'Course', imageUrl: '' })
     }
   }
 
@@ -154,7 +168,7 @@ export default function Groups() {
           />
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          {['All', 'Course', 'Department', 'Club', 'Private'].map(type => (
+          {dynamicFilterTypes.map(type => (
             <button
               key={type}
               onClick={() => setFilterType(type)}
@@ -201,9 +215,13 @@ export default function Groups() {
               <CardContent className="pt-6 flex-1 relative">
                 <div className="absolute -top-10 left-6">
                   <div className="w-16 h-16 rounded-2xl bg-white dark:bg-slate-900 p-1 shadow-sm">
-                    <div className={`w-full h-full rounded-xl ${group.color} flex items-center justify-center text-white font-bold text-xl`}>
-                      {group.name.charAt(0)}
-                    </div>
+                    {group.imageUrl ? (
+                      <img src={group.imageUrl} alt={group.name} className="w-full h-full object-cover rounded-xl" />
+                    ) : (
+                      <div className={`w-full h-full rounded-xl ${group.color} flex items-center justify-center text-white font-bold text-xl`}>
+                        {group.name.charAt(0)}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -321,7 +339,37 @@ export default function Groups() {
               initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
               className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full border border-slate-100 dark:border-slate-700 relative z-10"
             >
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Create New Group</h3>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 text-center">Create New Group</h3>
+              
+              <div className="flex justify-center mb-6">
+                <div className="relative w-28 h-28 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer overflow-hidden group">
+                  {newGroupInput.imageUrl ? (
+                    <img src={newGroupInput.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center text-slate-400 group-hover:text-indigo-500 transition-colors">
+                      <Camera size={28} className="mb-1" />
+                      <span className="text-[10px] font-medium uppercase tracking-wider">Photo</span>
+                    </div>
+                  )}
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="absolute inset-0 opacity-0 cursor-pointer" 
+                    onChange={e => {
+                      if (e.target.files && e.target.files[0]) {
+                        const url = URL.createObjectURL(e.target.files[0]);
+                        setNewGroupInput(prev => ({ ...prev, imageUrl: url }));
+                      }
+                    }}
+                  />
+                  {newGroupInput.imageUrl && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                      <span className="text-white text-xs font-medium">Change</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="space-y-4 mb-6">
                 <div>
                   <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Group Name</label>
@@ -333,16 +381,17 @@ export default function Groups() {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Group Type</label>
-                  <select 
+                  <Input 
                     value={newGroupInput.type} 
-                    onChange={e => setNewGroupInput(prev => ({ ...prev, type: e.target.value }))}
-                    className="w-full flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:placeholder:text-slate-400 dark:focus-visible:ring-indigo-500"
-                  >
-                    <option value="Course">Course</option>
-                    <option value="Department">Department</option>
-                    <option value="Club">Club</option>
-                    <option value="Private">Private</option>
-                  </select>
+                    onChange={e => setNewGroupInput(prev => ({ ...prev, type: e.target.value }))} 
+                    placeholder="e.g. Subject, Course, Department" 
+                    list="group-types" 
+                  />
+                  <datalist id="group-types">
+                    {Array.from(new Set(groupsData.map(g => g.type))).map(t => (
+                      <option key={t} value={t} />
+                    ))}
+                  </datalist>
                 </div>
               </div>
               <div className="flex gap-3 justify-end">
