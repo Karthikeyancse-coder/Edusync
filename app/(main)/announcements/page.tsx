@@ -1,13 +1,16 @@
 'use client'
 
 import React from 'react'
-import { motion, Variants } from 'framer-motion'
+import { motion, Variants, AnimatePresence } from 'framer-motion'
 import { Bell, Calendar, Pin, AlertCircle, FileText, ChevronRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
 
-const announcements = [
+import { Input } from '@/components/ui/Input'
+import { X } from 'lucide-react'
+
+const initialAnnouncements = [
   {
     id: 1,
     title: 'Urgent: Campus Closure Due to Weather',
@@ -64,8 +67,79 @@ const itemVariants: Variants = {
 }
 
 export default function Announcements() {
+  const [announcementsData, setAnnouncementsData] = React.useState(initialAnnouncements)
+  const [expandedIds, setExpandedIds] = React.useState<Set<number>>(new Set())
+  const [isPostModalOpen, setIsPostModalOpen] = React.useState(false)
+  const [newAnnouncement, setNewAnnouncement] = React.useState({
+    title: '',
+    content: '',
+    type: 'info',
+    pinned: false,
+  })
+  
+  const [bubbles, setBubbles] = React.useState<any[]>([])
+  
+  React.useEffect(() => {
+    const newBubbles = Array.from({ length: 20 }).map((_, i) => ({
+      id: i,
+      xOffset: Math.random() * 100,
+      size: Math.random() * 40 + 20,
+      duration: Math.random() * 15 + 10,
+      delay: Math.random() * 10,
+      rotate: Math.random() * 90 - 45
+    }))
+    setBubbles(newBubbles)
+  }, [])
+
+  const handlePost = () => {
+    if (!newAnnouncement.title || !newAnnouncement.content) return
+    const nextId = Math.max(0, ...announcementsData.map(a => a.id)) + 1
+    const announcement = {
+      id: nextId,
+      title: newAnnouncement.title,
+      author: 'Admin Principal',
+      role: 'principal',
+      date: 'Just now',
+      content: newAnnouncement.content,
+      type: newAnnouncement.type,
+      pinned: newAnnouncement.pinned,
+    }
+    setAnnouncementsData(prev => [announcement, ...prev])
+    setIsPostModalOpen(false)
+    setNewAnnouncement({ title: '', content: '', type: 'info', pinned: false })
+  }
+
+  const toggleExpand = (id: number) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   return (
-    <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-8 pb-24">
+    <div className="p-6 md:p-8 min-h-[calc(100vh-theme(spacing.16))] md:min-h-screen relative bg-red-50 dark:bg-slate-900 overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-red-100 via-white to-rose-100 dark:from-slate-950 dark:via-slate-900 dark:to-red-950/20" />
+        {bubbles.map(bubble => (
+          <motion.div
+            key={bubble.id}
+            initial={{ y: '100vh', x: `${bubble.xOffset}vw`, opacity: 0.1, scale: 0.5 }}
+            animate={{ 
+              y: '-20vh', 
+              x: `${bubble.xOffset + bubble.rotate}vw`, 
+              opacity: [0.1, 0.4, 0.1],
+              rotate: 360
+            }}
+            transition={{ duration: bubble.duration, delay: bubble.delay, repeat: Infinity, ease: 'linear' }}
+            className="absolute bottom-0 rounded-full bg-gradient-to-tr from-red-300/30 to-rose-300/30 dark:from-red-600/20 dark:to-rose-600/20"
+            style={{ width: bubble.size, height: bubble.size }}
+          />
+        ))}
+      </div>
+      
+      <div className="max-w-4xl mx-auto space-y-8 pb-24 relative z-10">
       {/* Header Section */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
@@ -78,7 +152,7 @@ export default function Announcements() {
             Stay updated with the latest news and important notices.
           </p>
         </div>
-        <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">
+        <Button onClick={() => setIsPostModalOpen(true)} className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">
           <Bell size={18} />
           Post Announcement
         </Button>
@@ -94,9 +168,10 @@ export default function Announcements() {
         {/* Vertical Line for timeline effect (Desktop) */}
         <div className="hidden md:block absolute left-8 top-8 bottom-8 w-px bg-slate-200 dark:bg-slate-800" />
 
-        {announcements.map((announcement) => {
+        {announcementsData.map((announcement) => {
           const isUrgent = announcement.type === 'urgent'
           const Icon = isUrgent ? AlertCircle : announcement.type === 'event' ? Calendar : FileText
+          const isExpanded = expandedIds.has(announcement.id)
           
           return (
             <motion.div key={announcement.id} variants={itemVariants} className="relative md:pl-24">
@@ -141,7 +216,7 @@ export default function Announcements() {
                           </h2>
                         </div>
 
-                        <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                        <p className={`text-slate-600 dark:text-slate-300 text-sm leading-relaxed ${isExpanded ? '' : 'line-clamp-2'}`}>
                           {announcement.content}
                         </p>
                       </div>
@@ -149,9 +224,9 @@ export default function Announcements() {
 
                     {/* Actions */}
                     <div className="flex items-center sm:flex-col gap-2 shrink-0">
-                      <Button variant="ghost" className="w-full sm:w-auto justify-start sm:justify-center text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
-                        Read More
-                        <ChevronRight size={16} className="ml-1" />
+                      <Button onClick={() => toggleExpand(announcement.id)} variant="ghost" className="w-full sm:w-auto justify-start sm:justify-center text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
+                        {isExpanded ? 'Show Less' : 'Read More'}
+                        <ChevronRight size={16} className={`ml-1 transition-transform ${isExpanded ? '-rotate-90' : ''}`} />
                       </Button>
                     </div>
                   </div>
@@ -161,6 +236,77 @@ export default function Announcements() {
           )
         })}
       </motion.div>
+      </div>
+
+      {/* Post Modal */}
+      <AnimatePresence>
+        {isPostModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-md w-full relative"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Post Announcement</h3>
+                <Button variant="ghost" size="icon" onClick={() => setIsPostModalOpen(false)} className="-mr-2 -mt-2">
+                  <X size={20} />
+                </Button>
+              </div>
+              
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Title <span className="text-red-500">*</span></label>
+                  <Input value={newAnnouncement.title} onChange={e => setNewAnnouncement(prev => ({ ...prev, title: e.target.value }))} placeholder="Enter title..." />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Type</label>
+                  <select 
+                    value={newAnnouncement.type} 
+                    onChange={e => setNewAnnouncement(prev => ({ ...prev, type: e.target.value }))}
+                    className="w-full h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950"
+                  >
+                    <option value="info">Info</option>
+                    <option value="academic">Academic</option>
+                    <option value="event">Event</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Content <span className="text-red-500">*</span></label>
+                  <textarea 
+                    value={newAnnouncement.content} 
+                    onChange={e => setNewAnnouncement(prev => ({ ...prev, content: e.target.value }))}
+                    rows={4}
+                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-slate-800 dark:bg-slate-950" 
+                    placeholder="Enter announcement details..."
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="checkbox" 
+                    id="pinned"
+                    checked={newAnnouncement.pinned}
+                    onChange={e => setNewAnnouncement(prev => ({ ...prev, pinned: e.target.checked }))}
+                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <label htmlFor="pinned" className="text-sm text-slate-700 dark:text-slate-300">Pin to top</label>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <Button variant="outline" onClick={() => setIsPostModalOpen(false)}>Cancel</Button>
+                <Button 
+                  onClick={handlePost} 
+                  disabled={!newAnnouncement.title || !newAnnouncement.content}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50"
+                >
+                  Post
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
