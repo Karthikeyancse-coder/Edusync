@@ -9,14 +9,14 @@ import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
 
 const users = [
-  { id: 1, name: 'Emma Thompson', role: 'student', department: 'Computer Science', email: 'emma.t@edusync.edu', status: 'online' },
+  { id: 1, name: 'Emma Thompson', role: 'student', department: 'Computer Science', email: 'emma.t@edusync.edu', status: 'online', year: '1st Year', section: 'a', studentType: 'rep' },
   { id: 2, name: 'Dr. Sarah Jenkins', role: 'faculty', department: 'Mathematics', email: 's.jenkins@edusync.edu', status: 'offline' },
   { id: 3, name: 'Admin Principal', role: 'principal', department: 'Administration', email: 'principal@edusync.edu', status: 'online' },
   { id: 4, name: 'Prof. Alan Turing', role: 'hod', department: 'Computer Science', email: 'a.turing@edusync.edu', status: 'offline' },
-  { id: 5, name: 'Michael Chen', role: 'student', department: 'Physics', email: 'm.chen@edusync.edu', status: 'online' },
-  { id: 6, name: 'Sarah Connor', role: 'student', department: 'Engineering', email: 's.connor@edusync.edu', status: 'offline' },
+  { id: 5, name: 'Michael Chen', role: 'student', department: 'Physics', email: 'm.chen@edusync.edu', status: 'online', year: '2nd Year', section: 'b', studentType: 'all' },
+  { id: 6, name: 'Sarah Connor', role: 'student', department: 'Engineering', email: 's.connor@edusync.edu', status: 'offline', year: '3rd Year', section: 'c', studentType: 'all' },
   { id: 7, name: 'Dr. Marie Curie', role: 'hod', department: 'Physics', email: 'm.curie@edusync.edu', status: 'online' },
-  { id: 8, name: 'John Doe', role: 'student', department: 'Mathematics', email: 'j.doe@edusync.edu', status: 'offline' },
+  { id: 8, name: 'John Doe', role: 'student', department: 'Mathematics', email: 'j.doe@edusync.edu', status: 'offline', year: '1st Year', section: 'a', studentType: 'all' },
 ]
 
 const containerVariants: Variants = {
@@ -45,7 +45,7 @@ export default function Directory() {
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false)
   const [contextMenu, setContextMenu] = useState<{ id: number; x: number; y: number } | null>(null)
   const [editingUser, setEditingUser] = useState<any | null>(null)
-  const [newUser, setNewUser] = useState({ name: '', role: 'student', department: '', email: '' })
+  const [newUser, setNewUser] = useState({ name: '', role: 'student', department: '', email: '', year: '1st Year', section: 'a', studentType: 'all' })
 
   React.useEffect(() => {
     const handleGlobalClick = () => setContextMenu(null)
@@ -70,7 +70,7 @@ export default function Directory() {
     const nextId = Math.max(...usersData.map(u => u.id)) + 1
     setUsersData(prev => [{ id: nextId, ...newUser, status: 'offline' }, ...prev])
     setIsAddUserModalOpen(false)
-    setNewUser({ name: '', role: 'student', department: '', email: '' })
+    setNewUser({ name: '', role: 'student', department: '', email: '', year: '1st Year', section: 'a', studentType: 'all' })
   }
 
   const handleEditUser = () => {
@@ -415,6 +415,34 @@ export default function Directory() {
                   <option value="principal">Principal</option>
                 </select>
               </div>
+              {newUser.role === 'student' && (
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Year</label>
+                    <select value={newUser.year} onChange={e => setNewUser(prev => ({ ...prev, year: e.target.value }))} className="w-full flex h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950">
+                      <option value="1st Year">1st Year</option>
+                      <option value="2nd Year">2nd Year</option>
+                      <option value="3rd Year">3rd Year</option>
+                      <option value="4th Year">4th Year</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Section</label>
+                    <select value={newUser.section} onChange={e => setNewUser(prev => ({ ...prev, section: e.target.value }))} className="w-full flex h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950">
+                      <option value="a">Section A</option>
+                      <option value="b">Section B</option>
+                      <option value="c">Section C</option>
+                    </select>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Student Type</label>
+                    <select value={newUser.studentType} onChange={e => setNewUser(prev => ({ ...prev, studentType: e.target.value }))} className="w-full flex h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950">
+                      <option value="all">Regular Student</option>
+                      <option value="rep">Class Representative</option>
+                    </select>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex gap-3 justify-end">
               <Button onClick={() => setIsAddUserModalOpen(false)} variant="outline">Cancel</Button>
@@ -465,6 +493,34 @@ export default function Directory() {
                   <option value="admin">Admin</option>
                 </select>
               </div>
+              {editingUser.role === 'student' && (
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Year</label>
+                    <select value={editingUser.year || '1st Year'} onChange={e => setEditingUser((prev: any) => prev ? ({ ...prev, year: e.target.value }) : null)} className="w-full flex h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950">
+                      <option value="1st Year">1st Year</option>
+                      <option value="2nd Year">2nd Year</option>
+                      <option value="3rd Year">3rd Year</option>
+                      <option value="4th Year">4th Year</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Section</label>
+                    <select value={editingUser.section || 'a'} onChange={e => setEditingUser((prev: any) => prev ? ({ ...prev, section: e.target.value }) : null)} className="w-full flex h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950">
+                      <option value="a">Section A</option>
+                      <option value="b">Section B</option>
+                      <option value="c">Section C</option>
+                    </select>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Student Type</label>
+                    <select value={editingUser.studentType || 'all'} onChange={e => setEditingUser((prev: any) => prev ? ({ ...prev, studentType: e.target.value }) : null)} className="w-full flex h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950">
+                      <option value="all">Regular Student</option>
+                      <option value="rep">Class Representative</option>
+                    </select>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex gap-3 justify-end">
               <Button onClick={() => setEditingUser(null)} variant="outline">Cancel</Button>
