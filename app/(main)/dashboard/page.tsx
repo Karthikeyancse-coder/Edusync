@@ -4,63 +4,21 @@ import React from 'react'
 import { motion, Variants } from 'framer-motion'
 import { Users, GraduationCap, BookOpen, Bell, Calendar, ChevronRight, Activity, ArrowUpRight } from 'lucide-react'
 import { useAuth } from '@/providers/AuthProvider'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { PerformanceChart } from '@/components/ui/PerformanceChart'
 
-const stats = [
-  {
-    title: 'Total Students',
-    value: '2,854',
-    change: '+12%',
-    trend: 'up',
-    icon: Users,
-    color: 'text-indigo-600',
-    bg: 'bg-indigo-100 dark:bg-indigo-900/20',
-  },
-  {
-    title: 'Total Faculty',
-    value: '184',
-    change: '+3%',
-    trend: 'up',
-    icon: GraduationCap,
-    color: 'text-emerald-600',
-    bg: 'bg-emerald-100 dark:bg-emerald-900/20',
-  },
-  {
-    title: 'Active Courses',
-    value: '432',
-    change: '0%',
-    trend: 'neutral',
-    icon: BookOpen,
-    color: 'text-blue-600',
-    bg: 'bg-blue-100 dark:bg-blue-900/20',
-  },
-  {
-    title: 'Pending Requests',
-    value: '28',
-    change: '-5%',
-    trend: 'down',
-    icon: Bell,
-    color: 'text-amber-600',
-    bg: 'bg-amber-100 dark:bg-amber-900/20',
-  },
-]
-
-const recentActivity = [
-  { id: 1, title: 'New syllabus uploaded for CS101', time: '2 hours ago', type: 'document' },
-  { id: 2, title: 'Dr. Smith updated office hours', time: '4 hours ago', type: 'update' },
-  { id: 3, title: 'Midterm schedule published', time: 'Yesterday', type: 'announcement' },
-  { id: 4, title: 'Server maintenance scheduled', time: 'Yesterday', type: 'system' },
-]
+// Import Dashboard Widgets
+import { StatCard } from '@/components/dashboard/StatCard'
+import { TodayTimetable } from '@/components/dashboard/TodayTimetable'
+import { AttendanceWidget } from '@/components/dashboard/AttendanceWidget'
+import { AssignmentWidget } from '@/components/dashboard/AssignmentWidget'
+import { AtRiskStudents } from '@/components/dashboard/AtRiskStudents'
+import { FacultyPendingTasks } from '@/components/dashboard/FacultyPendingTasks'
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 },
-  },
+  show: { opacity: 1, transition: { staggerChildren: 0.1 } },
 }
 
 const itemVariants: Variants = {
@@ -69,13 +27,10 @@ const itemVariants: Variants = {
 }
 
 export default function Dashboard() {
-  const { profile } = useAuth()
+  const { profile, role } = useAuth()
   
-  // Format current date beautifully
   const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
+    weekday: 'long', month: 'long', day: 'numeric',
   })
 
   return (
@@ -93,119 +48,158 @@ export default function Dashboard() {
             Welcome back, {profile?.name?.split(' ')[0] || 'User'}!
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-2">
-            Here's what's happening at your institution today.
+            {role === 'student' ? 'Here is your academic overview for today.' :
+             role === 'faculty' ? 'Here are your pending tasks and classes.' :
+             role === 'hod' ? 'Here is the department overview.' :
+             'Here is the college-wide overview.'}
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="gap-2">
-            <Calendar size={16} />
-            Schedule
-          </Button>
+          {role !== 'student' && (
+            <Button variant="outline" className="gap-2">
+              <Activity size={16} /> Generate Report
+            </Button>
+          )}
           <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white">
-            <Activity size={16} />
-            Generate Report
+            <Calendar size={16} /> View Schedule
           </Button>
         </div>
       </motion.div>
 
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="show"
-        className="space-y-8"
-      >
-        {/* Quick Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {stats.map((stat, i) => (
-            <motion.div key={i} variants={itemVariants}>
-              <Card className="group hover:shadow-md transition-all duration-300 border-slate-200/60 dark:border-slate-800/60 bg-white/50 dark:bg-surface/50 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.bg} ${stat.color} transition-transform duration-300 group-hover:scale-110`}>
-                      <stat.icon size={24} />
-                    </div>
-                    <Badge variant={stat.trend === 'up' ? 'success' : stat.trend === 'down' ? 'warning' : 'default'} className="bg-opacity-10 shadow-none">
-                      {stat.change}
-                    </Badge>
-                  </div>
-                  <div className="mt-4">
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{stat.title}</p>
-                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{stat.value}</h3>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+      <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-8">
+        
+        {/* STUDENT DASHBOARD */}
+        {role === 'student' && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              <motion.div variants={itemVariants}>
+                <StatCard title="Current GPA" value="3.8" trend="up" change="+0.2" icon={GraduationCap} bgClass="bg-indigo-100 dark:bg-indigo-500/20" colorClass="text-indigo-600 dark:text-indigo-400" />
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <StatCard title="Total Credits" value="112" icon={BookOpen} bgClass="bg-emerald-100 dark:bg-emerald-500/20" colorClass="text-emerald-600 dark:text-emerald-400" />
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <StatCard title="Unread Messages" value="4" icon={Bell} bgClass="bg-amber-100 dark:bg-amber-500/20" colorClass="text-amber-600 dark:text-amber-400" />
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <StatCard title="Active Groups" value="7" icon={Users} bgClass="bg-blue-100 dark:bg-blue-500/20" colorClass="text-blue-600 dark:text-blue-400" />
+              </motion.div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <motion.div variants={itemVariants} className="lg:col-span-2">
+                <TodayTimetable role={role} />
+              </motion.div>
+              <motion.div variants={itemVariants} className="space-y-6">
+                <AttendanceWidget />
+                <AssignmentWidget />
+              </motion.div>
+            </div>
+          </>
+        )}
 
-        {/* Performance Chart */}
-        <motion.div variants={itemVariants}>
-          <PerformanceChart />
-        </motion.div>
+        {/* FACULTY DASHBOARD */}
+        {role === 'faculty' && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              <motion.div variants={itemVariants}>
+                <StatCard title="Total Students" value="142" icon={Users} bgClass="bg-indigo-100 dark:bg-indigo-500/20" colorClass="text-indigo-600 dark:text-indigo-400" />
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <StatCard title="Classes Today" value="3" icon={BookOpen} bgClass="bg-emerald-100 dark:bg-emerald-500/20" colorClass="text-emerald-600 dark:text-emerald-400" />
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <StatCard title="Pending Approvals" value="12" trend="down" change="-2" icon={Bell} bgClass="bg-amber-100 dark:bg-amber-500/20" colorClass="text-amber-600 dark:text-amber-400" />
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <StatCard title="Avg Attendance" value="88%" trend="neutral" change="0%" icon={Activity} bgClass="bg-blue-100 dark:bg-blue-500/20" colorClass="text-blue-600 dark:text-blue-400" />
+              </motion.div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <motion.div variants={itemVariants} className="lg:col-span-2 space-y-6">
+                <TodayTimetable role={role} />
+                <PerformanceChart />
+              </motion.div>
+              <motion.div variants={itemVariants} className="space-y-6">
+                <FacultyPendingTasks />
+                <AtRiskStudents />
+              </motion.div>
+            </div>
+          </>
+        )}
 
-        {/* Main Content Area Split */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* Left Column (2/3) - Recent Activity */}
-          <motion.div variants={itemVariants} className="lg:col-span-2">
-            <Card className="h-full">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Recent Activity</CardTitle>
-                  <CardDescription>Latest updates across the campus</CardDescription>
-                </div>
-                <Button variant="ghost" size="sm" className="text-indigo-600">
-                  View All <ChevronRight size={16} className="ml-1" />
-                </Button>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                  {recentActivity.map((activity) => (
-                    <div key={activity.id} className="p-4 sm:px-6 flex items-start gap-4 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
-                      <div className="w-2 h-2 mt-2 rounded-full bg-indigo-500" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
-                          {activity.title}
-                        </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                          {activity.time}
-                        </p>
-                      </div>
-                      <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        View
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+        {/* HOD DASHBOARD */}
+        {role === 'hod' && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              <motion.div variants={itemVariants}>
+                <StatCard title="Dept Students" value="845" icon={Users} bgClass="bg-indigo-100 dark:bg-indigo-500/20" colorClass="text-indigo-600 dark:text-indigo-400" />
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <StatCard title="Dept Faculty" value="42" icon={GraduationCap} bgClass="bg-emerald-100 dark:bg-emerald-500/20" colorClass="text-emerald-600 dark:text-emerald-400" />
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <StatCard title="Pending Approvals" value="28" trend="up" change="+5" icon={Bell} bgClass="bg-amber-100 dark:bg-amber-500/20" colorClass="text-amber-600 dark:text-amber-400" />
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <StatCard title="Dept Avg Attendance" value="91%" icon={Activity} bgClass="bg-blue-100 dark:bg-blue-500/20" colorClass="text-blue-600 dark:text-blue-400" />
+              </motion.div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <motion.div variants={itemVariants} className="lg:col-span-2">
+                <PerformanceChart />
+              </motion.div>
+              <motion.div variants={itemVariants} className="space-y-6">
+                <FacultyPendingTasks />
+                <AtRiskStudents />
+              </motion.div>
+            </div>
+          </>
+        )}
 
-          {/* Right Column (1/3) - Quick Actions */}
-          <motion.div variants={itemVariants}>
-            <Card className="bg-gradient-to-br from-indigo-600 to-violet-700 text-white border-none shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-white">Quick Actions</CardTitle>
-                <CardDescription className="text-indigo-100">Frequently used tools</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <button className="w-full flex items-center justify-between p-4 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-sm font-medium backdrop-blur-sm">
-                  Add New Student
-                  <ArrowUpRight size={18} className="opacity-70" />
-                </button>
-                <button className="w-full flex items-center justify-between p-4 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-sm font-medium backdrop-blur-sm">
-                  Create Announcement
-                  <ArrowUpRight size={18} className="opacity-70" />
-                </button>
-                <button className="w-full flex items-center justify-between p-4 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-sm font-medium backdrop-blur-sm">
-                  System Settings
-                  <ArrowUpRight size={18} className="opacity-70" />
-                </button>
-              </CardContent>
-            </Card>
-          </motion.div>
+        {/* PRINCIPAL DASHBOARD */}
+        {role === 'principal' && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              <motion.div variants={itemVariants}>
+                <StatCard title="Total Students" value="2,854" icon={Users} bgClass="bg-indigo-100 dark:bg-indigo-500/20" colorClass="text-indigo-600 dark:text-indigo-400" />
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <StatCard title="Total Faculty" value="184" icon={GraduationCap} bgClass="bg-emerald-100 dark:bg-emerald-500/20" colorClass="text-emerald-600 dark:text-emerald-400" />
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <StatCard title="Total Departments" value="8" icon={BookOpen} bgClass="bg-purple-100 dark:bg-purple-500/20" colorClass="text-purple-600 dark:text-purple-400" />
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <StatCard title="College Avg Attendance" value="89%" icon={Activity} bgClass="bg-blue-100 dark:bg-blue-500/20" colorClass="text-blue-600 dark:text-blue-400" />
+              </motion.div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <motion.div variants={itemVariants} className="lg:col-span-2">
+                <PerformanceChart />
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <Card className="h-full bg-gradient-to-br from-indigo-600 to-violet-700 text-white border-none shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="text-white">Admin Actions</CardTitle>
+                    <CardDescription className="text-indigo-100">System management tools</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <button className="w-full flex items-center justify-between p-4 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-sm font-medium backdrop-blur-sm">
+                      User Management <ArrowUpRight size={18} className="opacity-70" />
+                    </button>
+                    <button className="w-full flex items-center justify-between p-4 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-sm font-medium backdrop-blur-sm">
+                      Global Announcements <ArrowUpRight size={18} className="opacity-70" />
+                    </button>
+                    <button className="w-full flex items-center justify-between p-4 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-sm font-medium backdrop-blur-sm">
+                      System Settings <ArrowUpRight size={18} className="opacity-70" />
+                    </button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+          </>
+        )}
 
-        </div>
       </motion.div>
     </div>
   )

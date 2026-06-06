@@ -4,24 +4,19 @@ import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { LayoutDashboard, MessageSquare, Users, BookOpen, Bell, LogOut } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/Logo'
 import { Avatar } from '@/components/ui/Avatar'
-import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { useAuth } from '@/providers/AuthProvider'
-
-const NAV_LINKS = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/messages', label: 'Messages', icon: MessageSquare },
-  { href: '/groups', label: 'Groups', icon: Users },
-  { href: '/directory', label: 'Directory', icon: BookOpen },
-  { href: '/announcements', label: 'Announcements', icon: Bell },
-]
+import { getNavItems } from '@/lib/nav'
 
 export function Sidebar() {
   const pathname = usePathname()
-  const { profile, signOut } = useAuth()
+  const { profile, role, signOut } = useAuth()
+  
+  const navItems = getNavItems(role)
 
   return (
     <aside className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 bg-slate-100 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-40">
@@ -29,8 +24,8 @@ export function Sidebar() {
         <Logo size="sm" />
       </div>
 
-      <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
-        {NAV_LINKS.map((link) => {
+      <nav className="flex-1 px-4 space-y-2 overflow-y-auto pt-4 pb-20">
+        {navItems.map((link) => {
           const isActive = pathname.startsWith(link.href)
           const Icon = link.icon
           
