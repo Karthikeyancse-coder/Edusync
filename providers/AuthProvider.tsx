@@ -104,18 +104,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const demoLogin = (role: Role) => {
+    const DEMO_PROFILES: Record<Role, { name: string; unique_id: string; department: string }> = {
+      student:   { name: 'Aarav Shah',       unique_id: 'STU-CSE-2024-001', department: 'Computer Science' },
+      faculty:   { name: 'Dr. Sarah Jenkins', unique_id: 'FAC-CSE-001',      department: 'Mathematics' },
+      hod:       { name: 'Prof. Alan Turing',  unique_id: 'HOD-CSE-001',      department: 'Computer Science' },
+      principal: { name: 'Admin Principal',    unique_id: 'PRIN-001',         department: 'Administration' },
+    }
+    const demo = DEMO_PROFILES[role]
     document.cookie = `demo_role=${role}; path=/`
     setProfile({
       id: 'demo-123',
-      unique_id: `DEMO-${role.toUpperCase()}`,
-      name: `Demo ${role}`,
+      unique_id: demo.unique_id,
+      name: demo.name,
       role: role,
-      department: 'Computer Science',
+      department: demo.department,
       is_active: true,
       avatar_color: '#7C6FFF',
       created_at: new Date().toISOString()
     } as User)
-    setUser({ id: 'demo-123', email: `demo@edusync.edu` } as SupabaseUser)
+    setUser({ id: 'demo-123', email: `${role}@edusync.edu` } as SupabaseUser)
     router.push('/dashboard')
   }
 
