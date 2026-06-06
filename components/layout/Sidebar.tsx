@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -14,19 +14,22 @@ import { getNavItems } from '@/lib/nav'
 
 export function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const { profile, role, signOut } = useAuth()
   
   const navItems = getNavItems(role)
 
   return (
-    <aside className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 bg-slate-100 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-40">
-      <div className="p-6">
+    <aside className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-40">
+      {/* Logo */}
+      <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
         <Logo size="sm" />
       </div>
 
-      <nav className="flex-1 px-4 space-y-2 overflow-y-auto pt-4 pb-20">
+      {/* Nav Items */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {navItems.map((link) => {
-          const isActive = pathname.startsWith(link.href)
+          const isActive = pathname === link.href || (link.href !== '/dashboard' && pathname.startsWith(link.href))
           const Icon = link.icon
           
           return (
@@ -34,65 +37,63 @@ export function Sidebar() {
               key={link.href}
               href={link.href}
               className={cn(
-                "group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 relative overflow-hidden",
+                "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative",
                 isActive 
-                  ? "text-white shadow-md" 
-                  : "text-slate-600 hover:text-indigo-700 dark:text-slate-400 dark:hover:text-indigo-300"
+                  ? "text-white bg-indigo-600 shadow-sm shadow-indigo-200 dark:shadow-indigo-900/40" 
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
               )}
             >
-              {/* Active Background - Framer Motion */}
-              {isActive && (
-                <motion.div
-                  layoutId="sidebar-active-bg"
-                  className="absolute inset-0 bg-indigo-600 dark:bg-indigo-600 rounded-xl z-0"
-                  initial={false}
-                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                />
-              )}
-
-              {/* Hover Background */}
-              {!isActive && (
-                <div className="absolute inset-0 bg-indigo-200/0 group-hover:bg-indigo-200/50 dark:group-hover:bg-indigo-900/40 rounded-xl z-0 transition-colors duration-300" />
-              )}
-
-              {/* Active Left Border - Removed to prefer the solid block style */}
-
-              <div className="relative z-10 flex items-center gap-3 transform group-hover:translate-x-1 transition-transform duration-300 w-full">
-                <Icon 
-                  size={20} 
-                  className={cn(
-                    "transition-all duration-300",
-                    isActive ? "scale-110 drop-shadow-sm" : "group-hover:scale-110"
-                  )} 
-                />
-                <span className="relative">
-                  {link.label}
+              <Icon 
+                size={18} 
+                className={cn(
+                  "shrink-0 transition-all duration-200",
+                  isActive ? "drop-shadow-sm" : "group-hover:scale-110"
+                )} 
+              />
+              <span className="flex-1 truncate">{link.label}</span>
+              {link.badge !== undefined && link.badge > 0 && (
+                <span className={cn(
+                  "text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0",
+                  isActive 
+                    ? "bg-white/30 text-white" 
+                    : "bg-indigo-600 text-white"
+                )}>
+                  {link.badge > 99 ? '99+' : link.badge}
                 </span>
-              </div>
+              )}
             </Link>
           )
         })}
       </nav>
 
-      <div className="p-4 border-t border-default">
-        <div className="flex items-center gap-3 p-3 rounded-card bg-surface2">
-          {profile && <Avatar name={profile.name} role={profile.role} size="md" showRoleBadge />}
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-primary-color truncate">
-              {profile?.name || 'Loading...'}
-            </p>
-            <p className="text-xs text-muted truncate capitalize">
-              {profile?.role || ''}
-            </p>
-          </div>
-          <div className="flex items-center gap-1">
+      {/* Profile Footer */}
+      <div className="p-3 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          {/* Clicking avatar/name goes to profile */}
+          <button
+            onClick={() => router.push('/profile')}
+            className="flex items-center gap-3 flex-1 min-w-0 text-left"
+          >
+            {profile && (
+              <Avatar name={profile.name} role={profile.role} size="md" showRoleBadge />
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                {profile?.name || 'Loading...'}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate capitalize">
+                {profile?.role || ''} · {profile?.unique_id || ''}
+              </p>
+            </div>
+          </button>
+          <div className="flex items-center gap-1 shrink-0">
             <ThemeToggle />
             <button 
               onClick={() => signOut()}
-              className="p-2 text-slate-500 hover:text-[var(--error)] transition-colors rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10"
               title="Log out"
             >
-              <LogOut size={18} />
+              <LogOut size={16} />
             </button>
           </div>
         </div>
