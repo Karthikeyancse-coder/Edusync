@@ -8,7 +8,6 @@ import { LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/Logo'
 import { Avatar } from '@/components/ui/Avatar'
-import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { useAuth } from '@/providers/AuthProvider'
 import { getNavItems } from '@/lib/nav'
 
@@ -86,8 +85,7 @@ export function Sidebar() {
               </p>
             </div>
           </button>
-          <div className="flex items-center gap-0.5 shrink-0">
-            <ThemeToggle />
+          <div className="flex items-center shrink-0">
             <button 
               onClick={() => signOut()}
               className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10"
