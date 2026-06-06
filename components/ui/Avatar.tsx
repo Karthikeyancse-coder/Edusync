@@ -5,14 +5,14 @@ import { Crown, Shield, BookOpen, GraduationCap } from 'lucide-react'
 
 interface AvatarProps {
   name: string
-  role: Role
+  role?: Role
   size?: 'sm' | 'md' | 'lg' | 'xl'
   online?: boolean
   showRoleBadge?: boolean
   className?: string
 }
 
-export function Avatar({ name, role, size = 'md', online = false, showRoleBadge = false, className }: AvatarProps) {
+export function Avatar({ name, role = 'student', size = 'md', online = false, showRoleBadge = false, className }: AvatarProps) {
   const initials = getInitials(name)
   const bgColor = getRoleColor(role)
   
