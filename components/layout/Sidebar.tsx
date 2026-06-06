@@ -9,7 +9,6 @@ import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/Logo'
 import { Avatar } from '@/components/ui/Avatar'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
-import { NotificationBell } from '@/components/ui/NotificationBell'
 import { useAuth } from '@/providers/AuthProvider'
 import { getNavItems } from '@/lib/nav'
 
@@ -88,7 +87,6 @@ export function Sidebar() {
             </div>
           </button>
           <div className="flex items-center gap-0.5 shrink-0">
-            <NotificationBell />
             <ThemeToggle />
             <button 
               onClick={() => signOut()}
