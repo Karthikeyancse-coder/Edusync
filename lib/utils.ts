@@ -67,3 +67,50 @@ export function getStatusLabel(status: string): string {
   }
   return map[status] || status
 }
+
+export function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+export function getAllowedFileTypes(): string[] {
+  return [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'video/mp4'
+  ]
+}
+
+export function getMaxFileSize(): number {
+  return 10 * 1024 * 1024 // 10MB
+}
+
+export function getExamTypeLabel(examType: string): string {
+  const map: Record<string, string> = {
+    unit_test_1: 'Unit Test 1',
+    unit_test_2: 'Unit Test 2',
+    unit_test_3: 'Unit Test 3',
+    mid_semester: 'Mid Semester',
+    final: 'Final',
+    practical: 'Practical',
+    assignment: 'Assignment',
+    internal: 'Internal',
+    attendance_marks: 'Attendance Marks'
+  }
+  return map[examType] || examType
+}
+
+export function getAttendanceColor(percentage: number): string {
+  if (percentage >= 75) return 'text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
+  if (percentage >= 60) return 'text-amber-500 bg-amber-50 dark:bg-amber-500/10'
+  return 'text-red-500 bg-red-50 dark:bg-red-500/10'
+}
