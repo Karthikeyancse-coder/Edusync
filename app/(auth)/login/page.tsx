@@ -10,6 +10,9 @@ import { Button } from '@/components/ui/Button'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { login, loginWithOAuth } from '@/lib/auth'
 import { Iridescence } from '@/components/ui/Iridescence'
+import { useAuth } from '@/providers/AuthProvider'
+import { Role } from '@/types'
+import { GraduationCap, UserSquare2, ShieldCheck, Crown } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -18,6 +21,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const { demoLogin } = useAuth()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -192,9 +196,20 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-6 text-center">
-              <p className="text-[12px] text-muted">
+              <p className="text-[12px] text-muted mb-4">
                 Forgot your ID? Contact your administrator
               </p>
+              
+              {/* DEMO LOGIN SECTION */}
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+                <p className="text-xs text-slate-500 font-semibold mb-3 tracking-wide uppercase">Developer Quick Login</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="ghost" className="text-xs py-1 gap-2 flex items-center justify-center" onClick={() => demoLogin('student')}><GraduationCap size={16}/> Student</Button>
+                  <Button variant="ghost" className="text-xs py-1 gap-2 flex items-center justify-center" onClick={() => demoLogin('faculty')}><UserSquare2 size={16}/> Faculty</Button>
+                  <Button variant="ghost" className="text-xs py-1 gap-2 flex items-center justify-center" onClick={() => demoLogin('hod')}><ShieldCheck size={16}/> HOD</Button>
+                  <Button variant="ghost" className="text-xs py-1 gap-2 flex items-center justify-center" onClick={() => demoLogin('principal')}><Crown size={16}/> Principal</Button>
+                </div>
+              </div>
             </div>
           </motion.div>
         </div>
