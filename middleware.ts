@@ -15,23 +15,28 @@ export async function middleware(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
+  const demoRole = request.cookies.get('demo_role')?.value
 
   // Not authenticated → redirect to login
-  if (!user && pathname !== '/login') {
+  if (!user && !demoRole && pathname !== '/login') {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
   // Authenticated + on login → redirect to dashboard
-  if (user && pathname === '/login') {
+  if ((user || demoRole) && pathname === '/login') {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
   // /admin → principal only
   if (pathname.startsWith('/admin')) {
-    const { data: profile } = await supabase
-      .from('users').select('role').eq('id', user?.id).single()
-    if (profile?.role !== 'principal') {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+    if (demoRole) {
+      if (demoRole !== 'principal') return NextResponse.redirect(new URL('/dashboard', request.url))
+    } else {
+      const { data: profile } = await supabase
+        .from('users').select('role').eq('id', user?.id).single()
+      if (profile?.role !== 'principal') {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
     }
   }
 

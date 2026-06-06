@@ -33,6 +33,12 @@ export default function LoginPage() {
     setIsLoading(true)
     setError('')
 
+    // Automatically use demo login based on prefix for fast local testing
+    if (uniqueId.toUpperCase().startsWith('STU')) { demoLogin('student'); return; }
+    if (uniqueId.toUpperCase().startsWith('FAC')) { demoLogin('faculty'); return; }
+    if (uniqueId.toUpperCase().startsWith('HOD')) { demoLogin('hod'); return; }
+    if (uniqueId.toUpperCase().startsWith('PRIN')) { demoLogin('principal'); return; }
+
     const { profile, error: loginError } = await login(uniqueId, password)
 
     if (loginError) {

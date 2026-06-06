@@ -29,7 +29,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true
 
     async function getSession() {
-      const demoRole = typeof window !== 'undefined' ? sessionStorage.getItem('demo_role') : null
+      // Check for demo role in cookies
+      const match = document.cookie.match(new RegExp('(^| )demo_role=([^;]+)'))
+      const demoRole = match ? match[2] : null
+
       if (demoRole && mounted) {
         setProfile({
           id: 'demo-123',
@@ -95,13 +98,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase])
 
   const signOut = async () => {
-    sessionStorage.removeItem('demo_role')
+    document.cookie = 'demo_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
     await supabase.auth.signOut()
     router.push('/login')
   }
 
   const demoLogin = (role: Role) => {
-    sessionStorage.setItem('demo_role', role)
+    document.cookie = `demo_role=${role}; path=/`
     setProfile({
       id: 'demo-123',
       unique_id: `DEMO-${role.toUpperCase()}`,
