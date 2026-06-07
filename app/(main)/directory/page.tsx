@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react'
 import { motion, Variants, AnimatePresence } from 'framer-motion'
-import { Search, Filter, Mail, Phone, MoreHorizontal, UserPlus, X, Briefcase, GraduationCap, User, Trash2, Pencil, ChevronLeft } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Search, Filter, Mail, Phone, MoreHorizontal, UserPlus, X, Briefcase, GraduationCap, User, Trash2, Pencil, ChevronLeft, MessageSquare } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -35,6 +36,7 @@ const itemVariants: Variants = {
 }
 
 export default function Directory() {
+  const router = useRouter()
   const { role } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [usersData, setUsersData] = useState(users)
@@ -412,6 +414,9 @@ export default function Directory() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button onClick={(e) => { e.stopPropagation(); router.push('/messages') }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400">
+                        <MessageSquare size={16} />
+                      </Button>
                       <Button onClick={(e) => { e.stopPropagation(); alert(`Calling ${user.name}...`) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400">
                         <Phone size={16} />
                       </Button>
