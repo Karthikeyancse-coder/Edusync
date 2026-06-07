@@ -87,12 +87,12 @@ export default function Messages() {
     const userId = params.get('userId')
     const name = params.get('name')
     if (userId && name) {
-      const existing = initialContacts.find(c => c.id.toString() === userId)
+      const existing = initialContacts.find(c => c.name === name)
       if (existing) {
         setActiveContact(existing)
       } else {
         const newContact = { 
-          id: parseInt(userId), 
+          id: parseInt(userId) + 1000, 
           name, 
           role: 'Directory User', 
           lastMessage: '', 
@@ -101,7 +101,7 @@ export default function Messages() {
           avatar: name.substring(0, 2).toUpperCase() 
         }
         setContacts(prev => {
-          if (!prev.find(c => c.id.toString() === userId)) {
+          if (!prev.find(c => c.name === name)) {
             return [newContact, ...prev]
           }
           return prev
