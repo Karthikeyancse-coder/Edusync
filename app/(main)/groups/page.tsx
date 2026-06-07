@@ -139,7 +139,19 @@ export default function Groups() {
     hod_auto_added: true,
   })
 
-  const dynamicFilterTypes = ['All', ...Array.from(new Set(groupsData.map(g => g.group_category || g.type)))]
+  const ALL_FILTER_TYPES = [
+    'All',
+    'Subject',
+    'Study',
+    'Project',
+    'General',
+    'Faculty Meeting',
+    'Department',
+    'Committee',
+    'HOD Council',
+    'Inter-Department',
+    'College-wide',
+  ]
 
   React.useEffect(() => {
     const handleGlobalClick = () => setMenuOpen(null)
@@ -234,7 +246,7 @@ export default function Groups() {
     const matchesSearch = group.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           group.instructor.toLowerCase().includes(searchQuery.toLowerCase())
     if (!matchesSearch) return false
-    if (filterType !== 'All' && group.type !== filterType) return false
+    if (filterType !== 'All' && group.group_category !== filterType) return false
     return true
   }).sort((a, b) => {
     if (a.pinned && !b.pinned) return -1
@@ -275,12 +287,12 @@ export default function Groups() {
             className="pl-10 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
           />
         </div>
-        <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          {dynamicFilterTypes.map(type => (
+        <div className="flex gap-2 w-full overflow-x-auto pb-1 scrollbar-none flex-nowrap">
+          {ALL_FILTER_TYPES.map(type => (
             <button
               key={type}
               onClick={() => setFilterType(type)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors whitespace-nowrap shrink-0 ${
                 filterType === type 
                   ? 'bg-indigo-600 text-white shadow-md' 
                   : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
