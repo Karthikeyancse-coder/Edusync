@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   User, Mail, Phone, Building2, GraduationCap, Calendar, Edit2, 
   Save, X, Camera, Lock, Shield, BookOpen, CheckCircle, Award,
-  BarChart2, Clock, MessageSquare, Bell
+  BarChart2, Clock, MessageSquare, Bell, Copy, Check, Fingerprint, QrCode
 } from 'lucide-react'
 import { useAuth } from '@/providers/AuthProvider'
 import { Avatar } from '@/components/ui/Avatar'
@@ -62,6 +62,16 @@ export default function ProfilePage() {
   })
 
   const stats = STAT_CONFIGS[role || 'student'] || STAT_CONFIGS.student
+  const [copied, setCopied] = useState(false)
+
+  const uniqueId = profile?.unique_id || 'DEMO-ID'
+
+  const handleCopyId = () => {
+    navigator.clipboard.writeText(uniqueId).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
 
   const handleSave = () => {
     setIsEditing(false)
@@ -162,6 +172,38 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
         ))}
+      </motion.div>
+
+      {/* EduSync ID Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="mb-6"
+      >
+        <Card className="overflow-hidden border-0 shadow-md bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <Fingerprint size={26} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-0.5">Your EduSync ID</p>
+                  <p className="text-white font-mono text-xl font-bold tracking-wide">{uniqueId}</p>
+                  <p className="text-white/50 text-xs mt-0.5">Share this ID to let others add you to groups</p>
+                </div>
+              </div>
+              <button
+                onClick={handleCopyId}
+                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 active:scale-95 backdrop-blur-sm text-white text-sm font-semibold rounded-xl transition-all duration-200"
+              >
+                {copied ? <Check size={15} /> : <Copy size={15} />}
+                {copied ? 'Copied!' : 'Copy ID'}
+              </button>
+            </div>
+          </CardContent>
+        </Card>
       </motion.div>
 
       {/* Tabs */}

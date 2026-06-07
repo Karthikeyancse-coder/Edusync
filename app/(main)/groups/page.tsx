@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { motion, Variants, AnimatePresence } from 'framer-motion'
-import { Users, MoreHorizontal, UserPlus, BookOpen, MessageSquare, Search, Edit2, Trash2, Pin, Info, FolderOpen, Building2, ClipboardList, Crown, Network } from 'lucide-react'
+import { Users, MoreHorizontal, UserPlus, BookOpen, MessageSquare, Search, Edit2, Trash2, Pin, Info, FolderOpen, Building2, ClipboardList, Crown, Network, X, Check } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
@@ -11,6 +11,20 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/providers/AuthProvider'
 
 const presetColors = ['#7C6FFF', '#00D4AA', '#FF4D6D', '#FFB800', '#00B4D8', '#06D6A0', '#F72585', '#7209B7']
+
+// Sample user directory with unique IDs
+const USER_DIRECTORY = [
+  { unique_id: 'STU-CSE-2024-001', name: 'Aarav Shah',       role: 'student',   department: 'CSE', year: '2nd Year', section: 'a' },
+  { unique_id: 'STU-CSE-2024-002', name: 'Priya Nair',       role: 'student',   department: 'CSE', year: '2nd Year', section: 'a' },
+  { unique_id: 'STU-CSE-2024-003', name: 'Rohan Verma',      role: 'student',   department: 'CSE', year: '2nd Year', section: 'b' },
+  { unique_id: 'STU-CSE-2024-004', name: 'Kavya Reddy',      role: 'student',   department: 'CSE', year: '3rd Year', section: 'a' },
+  { unique_id: 'STU-ECE-2024-001', name: 'Arjun Mehta',      role: 'student',   department: 'ECE', year: '1st Year', section: 'a' },
+  { unique_id: 'FAC-CSE-001',      name: 'Dr. Sarah Jenkins', role: 'faculty',   department: 'CSE' },
+  { unique_id: 'FAC-CSE-002',      name: 'Prof. Alan Turing', role: 'faculty',   department: 'CSE' },
+  { unique_id: 'FAC-MATHS-001',    name: 'Dr. Jane Austen',   role: 'faculty',   department: 'Mathematics' },
+  { unique_id: 'HOD-CSE-001',      name: 'Prof. Alan Turing', role: 'hod',       department: 'CSE' },
+  { unique_id: 'PRIN-001',         name: 'Admin Principal',   role: 'principal', department: 'Administration' },
+]
 
 const groups = [
   { id: 1, name: 'Advanced Mathematics', instructor: 'Dr. Sarah Jenkins', members: 124, type: 'faculty_group', group_category: 'Subject', avatar_color: '#7C6FFF', color: 'bg-indigo-500', pinned: false },
@@ -84,6 +98,32 @@ export default function Groups() {
   const [renameInput, setRenameInput] = React.useState('')
   const [infoModalOpen, setInfoModalOpen] = React.useState<number | null>(null)
   const [createModalOpen, setCreateModalOpen] = React.useState(false)
+  const [memberSearch, setMemberSearch] = React.useState('')
+  const [memberSearchResult, setMemberSearchResult] = React.useState<any | null>(null)
+  const [addedMembers, setAddedMembers] = React.useState<any[]>([])
+
+  const handleMemberSearch = (query: string) => {
+    setMemberSearch(query)
+    if (!query.trim()) { setMemberSearchResult(null); return }
+    const found = USER_DIRECTORY.find(u =>
+      u.unique_id.toLowerCase() === query.trim().toLowerCase() ||
+      u.name.toLowerCase().includes(query.trim().toLowerCase())
+    )
+    setMemberSearchResult(found || null)
+  }
+
+  const handleAddMember = (member: any) => {
+    if (!addedMembers.find(m => m.unique_id === member.unique_id)) {
+      setAddedMembers(prev => [...prev, member])
+    }
+    setMemberSearch('')
+    setMemberSearchResult(null)
+  }
+
+  const handleRemoveMember = (id: string) => {
+    setAddedMembers(prev => prev.filter(m => m.unique_id !== id))
+  }
+
   const [newGroupInput, setNewGroupInput] = React.useState({
     name: '',
     instructor: '',
@@ -528,8 +568,36 @@ export default function Groups() {
                 {role === 'student' && (
                   <div>
                     <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Add Members <span className="text-red-500">*</span></label>
-                    <Input placeholder="Search students by name or ID..." className="mb-2" />
-                    <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                    <div className="relative mb-2">
+                      <Input 
+                        value={memberSearch} 
+                        onChange={e => handleMemberSearch(e.target.value)} 
+                        placeholder="Enter EduSync ID (e.g. STU-CSE-2024-002)..." 
+                      />
+                      {memberSearch && memberSearchResult && memberSearchResult.role === 'student' && (
+                        <div className="absolute z-20 top-full mt-1 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-2">
+                          <div className="flex items-center justify-between px-2 py-1.5">
+                            <div>
+                              <p className="text-sm font-semibold text-slate-900 dark:text-white">{memberSearchResult.name}</p>
+                              <p className="text-xs text-slate-500">{memberSearchResult.unique_id} · {memberSearchResult.year}</p>
+                            </div>
+                            <Button size="sm" onClick={() => handleAddMember(memberSearchResult)} className="h-7 text-xs bg-indigo-600 text-white">Add</Button>
+                          </div>
+                        </div>
+                      )}
+                      {memberSearch && !memberSearchResult && <p className="text-xs text-red-500 mt-1">No student found with that ID or name.</p>}
+                    </div>
+                    {addedMembers.filter(m => m.role === 'student').length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {addedMembers.filter(m => m.role === 'student').map(m => (
+                          <span key={m.unique_id} className="flex items-center gap-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs px-2 py-1 rounded-full">
+                            {m.name}
+                            <button onClick={() => handleRemoveMember(m.unique_id)}><X size={10}/></button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium mt-1">
                       ⚠ Only students can be added. No faculty/HOD/Principal here.
                     </div>
                   </div>
@@ -538,7 +606,35 @@ export default function Groups() {
                 {role === 'hod' && (
                   <div>
                     <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Add Members</label>
-                    <Input placeholder="Search faculty in your department..." />
+                    <div className="relative mb-2">
+                      <Input 
+                        value={memberSearch} 
+                        onChange={e => handleMemberSearch(e.target.value)} 
+                        placeholder="Enter EduSync ID (e.g. FAC-CSE-001)..." 
+                      />
+                      {memberSearch && memberSearchResult && memberSearchResult.role === 'faculty' && (
+                        <div className="absolute z-20 top-full mt-1 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-2">
+                          <div className="flex items-center justify-between px-2 py-1.5">
+                            <div>
+                              <p className="text-sm font-semibold text-slate-900 dark:text-white">{memberSearchResult.name}</p>
+                              <p className="text-xs text-slate-500">{memberSearchResult.unique_id} · {memberSearchResult.department}</p>
+                            </div>
+                            <Button size="sm" onClick={() => handleAddMember(memberSearchResult)} className="h-7 text-xs bg-indigo-600 text-white">Add</Button>
+                          </div>
+                        </div>
+                      )}
+                      {memberSearch && !memberSearchResult && <p className="text-xs text-red-500 mt-1">No faculty found with that ID or name.</p>}
+                    </div>
+                    {addedMembers.filter(m => m.role === 'faculty').length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {addedMembers.filter(m => m.role === 'faculty').map(m => (
+                          <span key={m.unique_id} className="flex items-center gap-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs px-2 py-1 rounded-full">
+                            {m.name}
+                            <button onClick={() => handleRemoveMember(m.unique_id)}><X size={10}/></button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -554,7 +650,35 @@ export default function Groups() {
                     </div>
                     <div>
                       <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Add Members</label>
-                      <Input placeholder="Search anyone in college..." />
+                      <div className="relative mb-2">
+                        <Input 
+                          value={memberSearch} 
+                          onChange={e => handleMemberSearch(e.target.value)} 
+                          placeholder="Enter any EduSync ID (e.g. HOD-CSE-001)..." 
+                        />
+                        {memberSearch && memberSearchResult && (
+                          <div className="absolute z-20 top-full mt-1 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-2">
+                            <div className="flex items-center justify-between px-2 py-1.5">
+                              <div>
+                                <p className="text-sm font-semibold text-slate-900 dark:text-white">{memberSearchResult.name}</p>
+                                <p className="text-xs text-slate-500">{memberSearchResult.unique_id} · {memberSearchResult.role}</p>
+                              </div>
+                              <Button size="sm" onClick={() => handleAddMember(memberSearchResult)} className="h-7 text-xs bg-indigo-600 text-white">Add</Button>
+                            </div>
+                          </div>
+                        )}
+                        {memberSearch && !memberSearchResult && <p className="text-xs text-red-500 mt-1">No user found with that ID or name.</p>}
+                      </div>
+                      {addedMembers.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {addedMembers.map(m => (
+                            <span key={m.unique_id} className="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs px-2 py-1 rounded-full">
+                              {m.name}
+                              <button onClick={() => handleRemoveMember(m.unique_id)}><X size={10}/></button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
