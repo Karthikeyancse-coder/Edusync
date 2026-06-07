@@ -44,6 +44,7 @@ export default function Messages() {
   const [showArchived, setShowArchived] = useState(false)
   const [pinnedChatIds, setPinnedChatIds] = useState<number[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isDragging, setIsDragging] = useState(false)
   
   useEffect(() => {
     // Generate bubbles only on client side to prevent hydration mismatch
@@ -88,6 +89,24 @@ export default function Messages() {
       clearTimeout(timer)
     }
   }, [])
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFilesSelect(e.dataTransfer.files)
+    }
+  }
 
   const handleFilesSelect = (files: FileList | File[]) => {
     const validFiles = Array.from(files).filter(f => f.type.startsWith('image/')).slice(0, 5 - attachments.length)
@@ -387,7 +406,10 @@ export default function Messages() {
 
         {/* Active Chat Area */}
         <Card 
-          className={`${activeContact ? 'flex' : 'hidden'} md:flex flex-1 flex-col h-full bg-[#f8f9fc]/90 dark:bg-slate-900/90 backdrop-blur-xl border-none shadow-xl relative overflow-hidden rounded-2xl transition-colors duration-300`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`${activeContact ? 'flex' : 'hidden'} md:flex flex-1 flex-col h-full bg-[#f8f9fc]/90 dark:bg-slate-900/90 backdrop-blur-xl border-none shadow-xl relative overflow-hidden rounded-2xl transition-colors duration-300 ${isDragging ? 'ring-2 ring-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20' : ''}`}
         >
           {activeContact ? (
             <>
