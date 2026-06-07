@@ -24,7 +24,7 @@ const initialMessages = [
 
 export default function Messages() {
   const [contacts, setContacts] = useState<any[]>(initialContacts)
-  const [activeContact, setActiveContact] = useState<any | null>(initialContacts[0])
+  const [activeContact, setActiveContact] = useState<any | null>(null)
   const [message, setMessage] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [filterMode, setFilterMode] = useState<'all' | 'individual' | 'group'>('all')
