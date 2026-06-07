@@ -2,20 +2,23 @@
 
 import React from 'react'
 import { motion, Variants, AnimatePresence } from 'framer-motion'
-import { Users, MoreHorizontal, UserPlus, BookOpen, MessageSquare, Search, Edit2, Trash2, Pin, Info, Camera } from 'lucide-react'
+import { Users, MoreHorizontal, UserPlus, BookOpen, MessageSquare, Search, Edit2, Trash2, Pin, Info, FolderOpen, Building2, ClipboardList, Crown, Network } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
 import { Input } from '@/components/ui/Input'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/providers/AuthProvider'
+
+const presetColors = ['#7C6FFF', '#00D4AA', '#FF4D6D', '#FFB800', '#00B4D8', '#06D6A0', '#F72585', '#7209B7']
 
 const groups = [
-  { id: 1, name: 'Advanced Mathematics', instructor: 'Dr. Sarah Jenkins', members: 124, type: 'Course', color: 'bg-indigo-500', pinned: false },
-  { id: 2, name: 'Computer Science 101', instructor: 'Prof. Alan Turing', members: 340, type: 'Course', color: 'bg-emerald-500', pinned: false },
-  { id: 3, name: 'Physics Department', instructor: 'Dr. Marie Curie', members: 45, type: 'Department', color: 'bg-violet-500', pinned: false },
-  { id: 4, name: 'Student Council', instructor: 'Admin Principal', members: 12, type: 'Club', color: 'bg-amber-500', pinned: false },
-  { id: 5, name: 'Literature 204', instructor: 'Dr. Jane Austen', members: 86, type: 'Course', color: 'bg-rose-500', pinned: false },
-  { id: 6, name: 'Faculty Lounge', instructor: 'Admin Principal', members: 184, type: 'Private', color: 'bg-blue-500', pinned: false },
+  { id: 1, name: 'Advanced Mathematics', instructor: 'Dr. Sarah Jenkins', members: 124, type: 'faculty_group', group_category: 'Subject', avatar_color: '#7C6FFF', color: 'bg-indigo-500', pinned: false },
+  { id: 2, name: 'Computer Science 101', instructor: 'Prof. Alan Turing', members: 340, type: 'faculty_group', group_category: 'Subject', avatar_color: '#06D6A0', color: 'bg-emerald-500', pinned: false },
+  { id: 3, name: 'Physics Department', instructor: 'Dr. Marie Curie', members: 45, type: 'hod_group', group_category: 'Department', avatar_color: '#7209B7', color: 'bg-violet-500', pinned: false },
+  { id: 4, name: 'Student Council', instructor: 'Admin Principal', members: 12, type: 'principal_group', group_category: 'Committee', avatar_color: '#FFB800', color: 'bg-amber-500', pinned: false },
+  { id: 5, name: 'Literature 204', instructor: 'Dr. Jane Austen', members: 86, type: 'faculty_group', group_category: 'Subject', avatar_color: '#FF4D6D', color: 'bg-rose-500', pinned: false },
+  { id: 6, name: 'Faculty Lounge', instructor: 'Admin Principal', members: 184, type: 'principal_group', group_category: 'College-wide', avatar_color: '#00B4D8', color: 'bg-blue-500', pinned: false },
 ]
 
 const containerVariants: Variants = {
@@ -31,19 +34,47 @@ const itemVariants: Variants = {
   show: { opacity: 1, scale: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
 }
 
+const getGroupIcon = (category?: string) => {
+  switch (category) {
+    case 'Subject': case 'Study': return BookOpen
+    case 'Project': return FolderOpen
+    case 'Faculty Meeting': return Users
+    case 'Department': case 'College-wide': return Building2
+    case 'Committee': return ClipboardList
+    case 'HOD Council': return Crown
+    case 'Inter-Department': return Network
+    default: return Users
+  }
+}
+
+const getAvatarShape = (type: string) => {
+  if (type === 'faculty_group') return 'rounded-md'
+  if (type === 'student_group') return 'rounded-2xl'
+  return 'rounded-full'
+}
+
 type GroupData = {
   id: number
   name: string
   instructor: string
   members: number
   type: string
+  group_category?: string
+  subject_name?: string
+  department?: string
+  year?: string
+  section?: string
+  description?: string
+  avatar_color?: string
+  principal_auto_added?: boolean
+  hod_auto_added?: boolean
   color: string
   pinned: boolean
-  imageUrl?: string
 }
 
 export default function Groups() {
   const router = useRouter()
+  const { role } = useAuth()
   const [searchQuery, setSearchQuery] = React.useState('')
   const [filterType, setFilterType] = React.useState('All')
   const [groupsData, setGroupsData] = React.useState<GroupData[]>(groups)
@@ -53,9 +84,22 @@ export default function Groups() {
   const [renameInput, setRenameInput] = React.useState('')
   const [infoModalOpen, setInfoModalOpen] = React.useState<number | null>(null)
   const [createModalOpen, setCreateModalOpen] = React.useState(false)
-  const [newGroupInput, setNewGroupInput] = React.useState({ name: '', instructor: '', type: 'Course', imageUrl: '' })
+  const [newGroupInput, setNewGroupInput] = React.useState({
+    name: '',
+    instructor: '',
+    type: role === 'student' ? 'student_group' : role === 'faculty' ? 'faculty_group' : role === 'hod' ? 'hod_group' : 'principal_group',
+    group_category: 'General',
+    subject_name: '',
+    department: '',
+    year: '1st Year',
+    section: 'a',
+    description: '',
+    avatar_color: '#7C6FFF',
+    principal_auto_added: true,
+    hod_auto_added: true,
+  })
 
-  const dynamicFilterTypes = ['All', ...Array.from(new Set(groupsData.map(g => g.type)))]
+  const dynamicFilterTypes = ['All', ...Array.from(new Set(groupsData.map(g => g.group_category || g.type)))]
 
   React.useEffect(() => {
     const handleGlobalClick = () => setMenuOpen(null)
@@ -101,20 +145,44 @@ export default function Groups() {
   }
 
   const confirmCreateGroup = () => {
-    if (newGroupInput.name.trim() && newGroupInput.instructor.trim()) {
-      const newGroup = {
+    if (newGroupInput.name.trim()) {
+      if (groupsData.some(g => g.name.toLowerCase() === newGroupInput.name.trim().toLowerCase())) {
+        if (!window.confirm("A similar group exists. Continue?")) return;
+      }
+      const newGroup: GroupData = {
         id: Date.now(),
         name: newGroupInput.name,
-        instructor: newGroupInput.instructor,
+        instructor: newGroupInput.instructor || 'Current User',
         members: 1,
-        type: newGroupInput.type || 'Course',
+        type: role === 'student' ? 'student_group' : role === 'faculty' ? 'faculty_group' : role === 'hod' ? 'hod_group' : 'principal_group',
+        group_category: newGroupInput.group_category,
+        subject_name: newGroupInput.subject_name,
+        department: newGroupInput.department,
+        year: newGroupInput.year,
+        section: newGroupInput.section,
+        description: newGroupInput.description,
+        avatar_color: newGroupInput.avatar_color,
+        principal_auto_added: newGroupInput.principal_auto_added,
+        hod_auto_added: newGroupInput.hod_auto_added,
         color: 'bg-emerald-500',
         pinned: false,
-        imageUrl: newGroupInput.imageUrl || undefined
       }
       setGroupsData(prev => [newGroup, ...prev])
       setCreateModalOpen(false)
-      setNewGroupInput({ name: '', instructor: '', type: 'Course', imageUrl: '' })
+      setNewGroupInput({
+        name: '',
+        instructor: '',
+        type: role === 'student' ? 'student_group' : role === 'faculty' ? 'faculty_group' : role === 'hod' ? 'hod_group' : 'principal_group',
+        group_category: 'General',
+        subject_name: '',
+        department: '',
+        year: '1st Year',
+        section: 'a',
+        description: '',
+        avatar_color: '#7C6FFF',
+        principal_auto_added: true,
+        hod_auto_added: true,
+      })
     }
   }
 
@@ -207,21 +275,25 @@ export default function Groups() {
               onContextMenu={(e) => { e.preventDefault(); setMenuOpen(group.id); }}
               className="group h-full flex flex-col bg-white/50 dark:bg-surface/50 backdrop-blur-sm border-slate-200/60 dark:border-slate-800/60 hover:shadow-lg transition-all duration-300 overflow-visible rounded-xl"
             >
-              <div className={`h-24 ${group.color} relative overflow-hidden rounded-t-xl`}>
+              <div 
+                className={`h-24 ${!group.avatar_color ? group.color : ''} relative overflow-hidden rounded-t-xl`}
+                style={group.avatar_color ? { backgroundColor: group.avatar_color } : {}}
+              >
                 <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
-                <BookOpen className="absolute -bottom-6 -right-6 text-white/20 w-32 h-32 transform group-hover:scale-110 transition-transform duration-500" />
+                {React.createElement(getGroupIcon(group.group_category), {
+                  className: "absolute -bottom-6 -right-6 text-white/20 w-32 h-32 transform group-hover:scale-110 transition-transform duration-500"
+                })}
                 {group.pinned && <Pin className="absolute top-4 left-4 text-white fill-white z-20" size={16} />}
               </div>
               <CardContent className="pt-6 flex-1 relative">
                 <div className="absolute -top-10 left-6">
-                  <div className="w-16 h-16 rounded-2xl bg-white dark:bg-slate-900 p-1 shadow-sm">
-                    {group.imageUrl ? (
-                      <img src={group.imageUrl} alt={group.name} className="w-full h-full object-cover rounded-xl" />
-                    ) : (
-                      <div className={`w-full h-full rounded-xl ${group.color} flex items-center justify-center text-white font-bold text-xl`}>
-                        {group.name.charAt(0)}
-                      </div>
-                    )}
+                  <div className={`w-16 h-16 bg-white dark:bg-slate-900 p-1 shadow-sm ${getAvatarShape(group.type)}`}>
+                    <div 
+                      className={`w-full h-full flex items-center justify-center text-white font-bold text-xl ${getAvatarShape(group.type)} ${!group.avatar_color ? group.color : ''}`}
+                      style={group.avatar_color ? { backgroundColor: group.avatar_color } : {}}
+                    >
+                      {group.name.charAt(0).toUpperCase()}
+                    </div>
                   </div>
                 </div>
 
@@ -337,69 +409,200 @@ export default function Groups() {
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full border border-slate-100 dark:border-slate-700 relative z-10"
+              className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-md w-full border border-slate-100 dark:border-slate-700 relative z-10 max-h-[90vh] overflow-y-auto scrollbar-thin"
             >
               <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 text-center">Create New Group</h3>
               
-              <div className="flex justify-center mb-6">
-                <div className="relative w-28 h-28 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer overflow-hidden group">
-                  {newGroupInput.imageUrl ? (
-                    <img src={newGroupInput.imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="flex flex-col items-center text-slate-400 group-hover:text-indigo-500 transition-colors">
-                      <Camera size={28} className="mb-1" />
-                      <span className="text-[10px] font-medium uppercase tracking-wider">Photo</span>
-                    </div>
-                  )}
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    className="absolute inset-0 opacity-0 cursor-pointer" 
-                    onChange={e => {
-                      if (e.target.files && e.target.files[0]) {
-                        const url = URL.createObjectURL(e.target.files[0]);
-                        setNewGroupInput(prev => ({ ...prev, imageUrl: url }));
-                      }
-                    }}
-                  />
-                  {newGroupInput.imageUrl && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                      <span className="text-white text-xs font-medium">Change</span>
-                    </div>
-                  )}
+              {/* Avatar Generator */}
+              <div className="flex flex-col items-center mb-6">
+                <div 
+                  className={`w-24 h-24 mb-4 flex items-center justify-center text-white font-bold text-3xl shadow-sm ${role === 'faculty' ? 'rounded-md' : role === 'student' ? 'rounded-2xl' : 'rounded-full'}`}
+                  style={{ backgroundColor: newGroupInput.avatar_color }}
+                >
+                  {(newGroupInput.name.charAt(0) || '?').toUpperCase()}
+                </div>
+                <div className="flex gap-2 flex-wrap justify-center max-w-[200px]">
+                  {presetColors.map(color => (
+                    <button
+                      key={color}
+                      onClick={() => setNewGroupInput(prev => ({ ...prev, avatar_color: color }))}
+                      className={`w-6 h-6 rounded-full transition-transform ${newGroupInput.avatar_color === color ? 'scale-125 ring-2 ring-offset-2 ring-indigo-500' : 'hover:scale-110'}`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
                 </div>
               </div>
 
               <div className="space-y-4 mb-6">
                 <div>
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Group Name</label>
-                  <Input value={newGroupInput.name} onChange={e => setNewGroupInput(prev => ({ ...prev, name: e.target.value }))} placeholder="e.g. Science 101" />
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Group Name <span className="text-red-500">*</span></label>
+                  <Input value={newGroupInput.name} onChange={e => setNewGroupInput(prev => ({ ...prev, name: e.target.value }))} placeholder="e.g. CSE 2A Maths" />
                 </div>
+
                 <div>
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Instructor Name</label>
-                  <Input value={newGroupInput.instructor} onChange={e => setNewGroupInput(prev => ({ ...prev, instructor: e.target.value }))} placeholder="e.g. Dr. Smith" />
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Group Type <span className="text-red-500">*</span></label>
+                  <select 
+                    value={newGroupInput.group_category} 
+                    onChange={e => setNewGroupInput(prev => ({ ...prev, group_category: e.target.value }))}
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
+                  >
+                    {role === 'faculty' && (
+                      <>
+                        <option value="Subject">Subject Group</option>
+                        <option value="Project">Project Group</option>
+                        <option value="Study">Study Group</option>
+                        <option value="General">General</option>
+                      </>
+                    )}
+                    {role === 'student' && (
+                      <>
+                        <option value="Study">Study Group</option>
+                        <option value="Project">Project Group</option>
+                        <option value="General">General</option>
+                      </>
+                    )}
+                    {role === 'hod' && (
+                      <>
+                        <option value="Faculty Meeting">Faculty Meeting</option>
+                        <option value="Department">Department Group</option>
+                        <option value="Committee">Committee</option>
+                        <option value="Project">Project Group</option>
+                        <option value="General">General</option>
+                      </>
+                    )}
+                    {role === 'principal' && (
+                      <>
+                        <option value="HOD Council">HOD Council</option>
+                        <option value="Inter-Department">Inter-Department</option>
+                        <option value="Committee">Committee</option>
+                        <option value="College-wide">College-wide</option>
+                        <option value="General">General</option>
+                      </>
+                    )}
+                  </select>
                 </div>
+
+                {role === 'faculty' && newGroupInput.group_category === 'Subject' && (
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Subject</label>
+                    <select 
+                      value={newGroupInput.subject_name} 
+                      onChange={e => setNewGroupInput(prev => ({ ...prev, subject_name: e.target.value }))}
+                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="">Select a subject...</option>
+                      <option value="Maths">Mathematics</option>
+                      <option value="Physics">Physics</option>
+                      <option value="Chemistry">Chemistry</option>
+                    </select>
+                  </div>
+                )}
+
+                {(role === 'faculty') && (
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Target Students <span className="text-red-500">*</span></label>
+                    <div className="flex gap-2 mb-2">
+                      <select value={newGroupInput.department} onChange={e => setNewGroupInput(prev => ({...prev, department: e.target.value}))} className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1 text-xs">
+                        <option value="">Dept</option>
+                        <option value="CSE">CSE</option>
+                        <option value="ECE">ECE</option>
+                      </select>
+                      <select value={newGroupInput.year} onChange={e => setNewGroupInput(prev => ({...prev, year: e.target.value}))} className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1 text-xs">
+                        <option value="1st Year">1st Yr</option>
+                        <option value="2nd Year">2nd Yr</option>
+                        <option value="3rd Year">3rd Yr</option>
+                        <option value="4th Year">4th Yr</option>
+                      </select>
+                      <select value={newGroupInput.section} onChange={e => setNewGroupInput(prev => ({...prev, section: e.target.value}))} className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1 text-xs">
+                        <option value="a">Sec A</option>
+                        <option value="b">Sec B</option>
+                      </select>
+                    </div>
+                    <div className="text-xs text-slate-500 flex justify-between items-center bg-slate-50 dark:bg-slate-800 p-2 rounded-lg">
+                      <span>{newGroupInput.department ? '42 students match' : 'Select filters to find students'}</span>
+                      <Button size="sm" variant="outline" className="h-6 text-xs px-2">Add All</Button>
+                    </div>
+                  </div>
+                )}
+
+                {role === 'student' && (
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Add Members <span className="text-red-500">*</span></label>
+                    <Input placeholder="Search students by name or ID..." className="mb-2" />
+                    <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                      ⚠ Only students can be added. No faculty/HOD/Principal here.
+                    </div>
+                  </div>
+                )}
+
+                {role === 'hod' && (
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Add Members</label>
+                    <Input placeholder="Search faculty in your department..." />
+                  </div>
+                )}
+
+                {role === 'principal' && (
+                  <>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Target (Optional)</label>
+                      <div className="flex gap-2">
+                         <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full cursor-pointer hover:bg-indigo-200">All College</span>
+                         <span className="text-xs px-2 py-1 bg-slate-100 text-slate-700 rounded-full cursor-pointer hover:bg-slate-200">Specific Depts</span>
+                         <span className="text-xs px-2 py-1 bg-slate-100 text-slate-700 rounded-full cursor-pointer hover:bg-slate-200">Roles</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Add Members</label>
+                      <Input placeholder="Search anyone in college..." />
+                    </div>
+                  </>
+                )}
+
                 <div>
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Group Type</label>
-                  <Input 
-                    value={newGroupInput.type} 
-                    onChange={e => setNewGroupInput(prev => ({ ...prev, type: e.target.value }))} 
-                    placeholder="e.g. Subject, Course, Department" 
-                    list="group-types" 
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Description</label>
+                  <textarea 
+                    value={newGroupInput.description} 
+                    onChange={e => setNewGroupInput(prev => ({ ...prev, description: e.target.value }))} 
+                    placeholder="Optional description" 
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 resize-none h-20"
                   />
-                  <datalist id="group-types">
-                    {Array.from(new Set(groupsData.map(g => g.type))).map(t => (
-                      <option key={t} value={t} />
-                    ))}
-                  </datalist>
                 </div>
+
+                {(role === 'faculty' || role === 'hod') && (
+                  <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                    <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wider">Auto-add Settings</h4>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-3">
+                        <input 
+                          type="checkbox" 
+                          checked={newGroupInput.principal_auto_added} 
+                          onChange={e => setNewGroupInput(prev => ({ ...prev, principal_auto_added: e.target.checked }))} 
+                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <span className="text-sm text-slate-700 dark:text-slate-300">Add Principal (default)</span>
+                      </label>
+                      {role === 'faculty' && (
+                        <label className="flex items-center gap-3">
+                          <input 
+                            type="checkbox" 
+                            checked={newGroupInput.hod_auto_added} 
+                            onChange={e => setNewGroupInput(prev => ({ ...prev, hod_auto_added: e.target.checked }))} 
+                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <span className="text-sm text-slate-700 dark:text-slate-300">Add HOD of dept (default)</span>
+                        </label>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="flex gap-3 justify-end">
                 <Button onClick={() => setCreateModalOpen(false)} variant="outline" className="border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
                   Cancel
                 </Button>
-                <Button onClick={confirmCreateGroup} className="bg-indigo-600 hover:bg-indigo-700 text-white border-0">
-                  Create
+                <Button onClick={confirmCreateGroup} disabled={!newGroupInput.name.trim()} className="bg-indigo-600 hover:bg-indigo-700 text-white border-0 disabled:opacity-50">
+                  Create Group
                 </Button>
               </div>
             </motion.div>
