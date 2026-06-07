@@ -32,10 +32,10 @@ const generateStudentMarks = (): StudentMark[] =>
       'Nikhil Jain', 'Sanjana Kulkarni'][i],
     roll: `23CS${String(i + 1).padStart(3, '0')}`,
     marks: {
-      'CIA-1': Math.floor(Math.random() * 30) + 20,
-      'CIA-2': Math.floor(Math.random() * 30) + 20,
-      'Model': Math.floor(Math.random() * 60) + 40,
-      'End-Sem': Math.floor(Math.random() * 60) + 40,
+      'CIA-1': 20 + ((i * 7) % 31),
+      'CIA-2': 20 + ((i * 11) % 31),
+      'Model': 40 + ((i * 13) % 61),
+      'End-Sem': 40 + ((i * 17) % 61),
     }
   }))
 
