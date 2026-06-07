@@ -82,6 +82,37 @@ export default function Messages() {
     }
     window.addEventListener('click', handleGlobalClick)
     
+    // Check for query parameters to open chat directly
+    const params = new URLSearchParams(window.location.search)
+    const userId = params.get('userId')
+    const name = params.get('name')
+    if (userId && name) {
+      const existing = initialContacts.find(c => c.id.toString() === userId)
+      if (existing) {
+        setActiveContact(existing)
+      } else {
+        const newContact = { 
+          id: parseInt(userId), 
+          name, 
+          role: 'Directory User', 
+          lastMessage: '', 
+          time: 'Just now', 
+          unread: 0, 
+          avatar: name.substring(0, 2).toUpperCase() 
+        }
+        setContacts(prev => {
+          if (!prev.find(c => c.id.toString() === userId)) {
+            return [newContact, ...prev]
+          }
+          return prev
+        })
+        setActiveContact(newContact)
+      }
+      
+      // Clean up the URL without triggering a page reload
+      window.history.replaceState({}, '', '/messages')
+    }
+
     // Simulate loading
     const timer = setTimeout(() => setIsLoading(false), 800)
     return () => {
