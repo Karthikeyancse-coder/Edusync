@@ -572,33 +572,40 @@ export default function Groups() {
                       <Input 
                         value={memberSearch} 
                         onChange={e => handleMemberSearch(e.target.value)} 
-                        placeholder="Enter EduSync ID (e.g. STU-CSE-2024-002)..." 
+                        placeholder="Enter EduSync ID (e.g. STU-CSE-2024-002 or FAC-CSE-001)..." 
                       />
-                      {memberSearch && memberSearchResult && memberSearchResult.role === 'student' && (
+                      {memberSearch && memberSearchResult && (memberSearchResult.role === 'student' || memberSearchResult.role === 'faculty') && (
                         <div className="absolute z-20 top-full mt-1 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-2">
                           <div className="flex items-center justify-between px-2 py-1.5">
                             <div>
                               <p className="text-sm font-semibold text-slate-900 dark:text-white">{memberSearchResult.name}</p>
-                              <p className="text-xs text-slate-500">{memberSearchResult.unique_id} · {memberSearchResult.year}</p>
+                              <p className="text-xs text-slate-500">{memberSearchResult.unique_id} · <span className="capitalize">{memberSearchResult.role}</span></p>
                             </div>
                             <Button size="sm" onClick={() => handleAddMember(memberSearchResult)} className="h-7 text-xs bg-indigo-600 text-white">Add</Button>
                           </div>
                         </div>
                       )}
-                      {memberSearch && !memberSearchResult && <p className="text-xs text-red-500 mt-1">No student found with that ID or name.</p>}
+                      {memberSearch && memberSearchResult && (memberSearchResult.role === 'hod' || memberSearchResult.role === 'principal') && (
+                        <p className="text-xs text-red-500 mt-1">⛔ HOD and Principal cannot be added to student groups.</p>
+                      )}
+                      {memberSearch && !memberSearchResult && <p className="text-xs text-red-500 mt-1">No user found with that ID or name.</p>}
                     </div>
-                    {addedMembers.filter(m => m.role === 'student').length > 0 && (
+                    {addedMembers.filter(m => m.role === 'student' || m.role === 'faculty').length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-2">
-                        {addedMembers.filter(m => m.role === 'student').map(m => (
-                          <span key={m.unique_id} className="flex items-center gap-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs px-2 py-1 rounded-full">
-                            {m.name}
+                        {addedMembers.filter(m => m.role === 'student' || m.role === 'faculty').map(m => (
+                          <span key={m.unique_id} className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
+                            m.role === 'faculty'
+                              ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300'
+                              : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300'
+                          }`}>
+                            {m.name} <span className="opacity-60">({m.role})</span>
                             <button onClick={() => handleRemoveMember(m.unique_id)}><X size={10}/></button>
                           </span>
                         ))}
                       </div>
                     )}
                     <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium mt-1">
-                      ⚠ Only students can be added. No faculty/HOD/Principal here.
+                      ⚠ Students and Faculty can be added. HOD &amp; Principal cannot.
                     </div>
                   </div>
                 )}
