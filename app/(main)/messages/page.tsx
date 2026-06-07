@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Send, Paperclip, MoreVertical, CheckCheck, Mic, X, ImageIcon, Reply, Forward, Trash2, ChevronDown, Edit2, Copy, User, BellOff, CheckSquare, XCircle, Pin, PinOff, MessageSquare, Archive, MinusCircle, ArrowLeft } from 'lucide-react'
+import { Search, Send, Paperclip, MoreVertical, CheckCheck, Mic, X, ImageIcon, Reply, Forward, Trash2, ChevronDown, Edit2, Copy, User, BellOff, CheckSquare, XCircle, Pin, PinOff, MessageSquare, Archive, MinusCircle, ArrowLeft, Users, Calendar, BookOpen, Crown, Shield, GraduationCap, ChevronRight, Info } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Avatar } from '@/components/ui/Avatar'
 import { Input } from '@/components/ui/Input'
@@ -39,6 +39,7 @@ export default function Messages() {
   const [replyingTo, setReplyingTo] = useState<any | null>(null)
   const [editingMessage, setEditingMessage] = useState<any | null>(null)
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false)
+  const [showGroupInfo, setShowGroupInfo] = useState(false)
   const [bubbles, setBubbles] = useState<any[]>([])
   const [archivedChatIds, setArchivedChatIds] = useState<number[]>([])
   const [showArchived, setShowArchived] = useState(false)
@@ -273,7 +274,11 @@ export default function Messages() {
   }
 
   const handleContactInfo = () => {
-    alert(`Contact Info: ${activeContact.name}\nRole: ${activeContact.role}`)
+    if (activeContact?.role === 'Group') {
+      setShowGroupInfo(true)
+    } else {
+      alert(`Contact Info: ${activeContact.name}\nRole: ${activeContact.role}`)
+    }
     setIsHeaderMenuOpen(false)
   }
 
@@ -454,24 +459,30 @@ export default function Messages() {
           
           {/* Chat Header */}
           <div className="relative z-20 shrink-0 p-4 md:p-6 flex items-center justify-between border-b border-indigo-100/50 dark:border-slate-800/50 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
-            <div className="flex items-center gap-3 md:gap-4">
-              <button 
-                onClick={() => setActiveContact(null)}
-                className="md:hidden p-2 -ml-2 mr-1 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+            <div
+                className="flex items-center gap-3 cursor-pointer select-none"
+                onClick={() => { if (activeContact?.role === 'Group') setShowGroupInfo(true) }}
               >
-                <ArrowLeft size={20} />
-              </button>
-              <div className="relative">
-                <div className="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-md">
-                  {activeContact.avatar}
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setActiveContact(null); }}
+                  className="md:hidden p-2 -ml-2 mr-1 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+                >
+                  <ArrowLeft size={20} />
+                </button>
+                <div className="relative">
+                  <div className="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-md">
+                    {activeContact.avatar}
+                  </div>
+                  <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
                 </div>
-                <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
+                <div>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-[17px] flex items-center gap-1.5">
+                    {activeContact.name}
+                    {activeContact.role === 'Group' && <ChevronRight size={14} className="text-slate-400" />}
+                  </h3>
+                  <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mt-0.5">{activeContact.role}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-bold text-slate-900 dark:text-white text-[17px]">{activeContact.name}</h3>
-                <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mt-0.5">{activeContact.role}</p>
-              </div>
-            </div>
             <div className="relative">
               <Button 
                 variant="ghost" 
@@ -879,6 +890,125 @@ export default function Messages() {
               <Trash2 size={16} /> Delete chat
             </button>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Group Info Panel - Slide in from right */}
+      <AnimatePresence>
+        {showGroupInfo && activeContact?.role === 'Group' && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[110] bg-black/30 backdrop-blur-sm"
+              onClick={() => setShowGroupInfo(false)}
+            />
+            {/* Panel */}
+            <motion.div
+              initial={{ x: '100%', opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: '100%', opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+              className="fixed right-0 top-0 h-full w-full max-w-sm z-[120] bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden"
+            >
+              {/* Panel Header */}
+              <div className="relative bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 pt-12 pb-8 px-6 flex flex-col items-center text-center">
+                <button
+                  onClick={() => setShowGroupInfo(false)}
+                  className="absolute top-4 right-4 w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white transition-colors"
+                >
+                  <X size={16} />
+                </button>
+                {/* Group Avatar */}
+                <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white font-bold text-3xl shadow-lg mb-3">
+                  {activeContact.avatar}
+                </div>
+                <h2 className="text-white font-bold text-xl mb-1">{activeContact.name}</h2>
+                <span className="text-white/70 text-xs font-semibold uppercase tracking-widest">Group</span>
+              </div>
+
+              {/* Scrollable Body */}
+              <div className="flex-1 overflow-y-auto">
+                {/* Quick Stats */}
+                <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-slate-800 border-b border-slate-100 dark:border-slate-800">
+                  {[
+                    { icon: Users, label: 'Members', value: '124' },
+                    { icon: Calendar, label: 'Created', value: 'Jan 2024' },
+                    { icon: BookOpen, label: 'Category', value: 'Subject' },
+                  ].map(({ icon: Icon, label, value }) => (
+                    <div key={label} className="flex flex-col items-center py-4 gap-1">
+                      <Icon size={18} className="text-indigo-500" />
+                      <p className="text-sm font-bold text-slate-900 dark:text-white">{value}</p>
+                      <p className="text-[10px] text-slate-500">{label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Description */}
+                <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <Info size={12} /> Description
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                    This group is for all students and faculty involved in Advanced Mathematics. Use this space for announcements, doubt clearing, and assignment updates.
+                  </p>
+                </div>
+
+                {/* Members */}
+                <div className="px-5 py-4">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <Users size={12} /> Members (124)
+                  </h3>
+                  <div className="space-y-1">
+                    {[
+                      { name: 'Dr. Sarah Jenkins', id: 'FAC-CSE-001', role: 'faculty', label: 'Admin', icon: Crown },
+                      { name: 'Prof. Alan Turing', id: 'HOD-CSE-001', role: 'hod', label: 'HOD', icon: Shield },
+                      { name: 'Aarav Shah', id: 'STU-CSE-2024-001', role: 'student', label: 'Student', icon: GraduationCap },
+                      { name: 'Priya Nair', id: 'STU-CSE-2024-002', role: 'student', label: 'Student', icon: GraduationCap },
+                      { name: 'Rohan Verma', id: 'STU-CSE-2024-003', role: 'student', label: 'Student', icon: GraduationCap },
+                      { name: 'Kavya Reddy', id: 'STU-CSE-2024-004', role: 'student', label: 'Student', icon: GraduationCap },
+                      { name: 'Arjun Mehta', id: 'STU-ECE-2024-001', role: 'student', label: 'Student', icon: GraduationCap },
+                    ].map((member) => {
+                      const roleColors: Record<string, string> = {
+                        faculty: 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300',
+                        hod: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
+                        student: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
+                      }
+                      return (
+                        <div key={member.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${roleColors[member.role]}`}>
+                            {member.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{member.name}</p>
+                            <p className="text-xs text-slate-400 font-mono">{member.id}</p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {member.label === 'Admin' && <Crown size={13} className="text-amber-500" />}
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${roleColors[member.role]}`}>
+                              {member.label}
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                    <button className="w-full mt-2 text-sm text-indigo-600 dark:text-indigo-400 font-semibold py-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-colors">
+                      View all 124 members →
+                    </button>
+                  </div>
+                </div>
+
+                {/* Danger Zone */}
+                <div className="px-5 pb-8 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <button className="w-full py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors">
+                    Leave Group
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </div>
