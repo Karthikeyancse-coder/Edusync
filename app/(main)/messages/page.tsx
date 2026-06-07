@@ -29,7 +29,6 @@ export default function Messages() {
   const [filterMode, setFilterMode] = useState<'all' | 'individual' | 'group'>('all')
   const [chatMessages, setChatMessages] = useState<any[]>(initialMessages)
   
-  const [isDragging, setIsDragging] = useState(false)
   const [attachments, setAttachments] = useState<string[]>([])
   const [isRecording, setIsRecording] = useState(false)
   
@@ -81,24 +80,6 @@ export default function Messages() {
     window.addEventListener('click', handleGlobalClick)
     return () => window.removeEventListener('click', handleGlobalClick)
   }, [])
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFilesSelect(e.dataTransfer.files)
-    }
-  }
 
   const handleFilesSelect = (files: FileList | File[]) => {
     const validFiles = Array.from(files).filter(f => f.type.startsWith('image/')).slice(0, 5 - attachments.length)
@@ -388,32 +369,10 @@ export default function Messages() {
 
         {/* Active Chat Area */}
         <Card 
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          className={`${activeContact ? 'flex' : 'hidden'} md:flex flex-1 flex-col h-full bg-[#f8f9fc]/90 dark:bg-slate-900/90 backdrop-blur-xl border-none shadow-xl relative overflow-hidden rounded-2xl transition-colors duration-300 ${isDragging ? 'ring-2 ring-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20' : ''}`}
+          className={`${activeContact ? 'flex' : 'hidden'} md:flex flex-1 flex-col h-full bg-[#f8f9fc]/90 dark:bg-slate-900/90 backdrop-blur-xl border-none shadow-xl relative overflow-hidden rounded-2xl transition-colors duration-300`}
         >
           {activeContact ? (
             <>
-          {/* Drag Overlay */}
-          <AnimatePresence>
-            {isDragging && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 z-50 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm"
-              >
-                <div className="text-center">
-                  <div className="w-20 h-20 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
-                    <ImageIcon size={32} className="text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Drop image to attach</h3>
-                  <p className="text-slate-500 dark:text-slate-400 mt-2">Release your mouse to add this file to the chat</p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           {/* Decorative Mesh Gradient Background */}
           <div className="absolute top-[-10%] right-[-5%] w-[40rem] h-[40rem] bg-indigo-300/60 dark:bg-indigo-600/20 rounded-full blur-[100px] pointer-events-none" />
@@ -652,7 +611,7 @@ export default function Messages() {
               )}
             </AnimatePresence>
 
-            <div className="flex items-center gap-3 w-full">
+            <div className="flex items-end gap-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-2 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/50 transition-all">
               <input 
                 type="file" 
                 multiple
@@ -665,48 +624,58 @@ export default function Messages() {
                 variant="ghost" 
                 size="icon" 
                 onClick={() => fileInputRef.current?.click()}
-                className="shrink-0 text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 rounded-full h-12 w-12 shadow-md hover:text-indigo-600 border border-slate-100 dark:border-slate-700 transition-transform hover:scale-105"
+                className="shrink-0 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-full w-10 h-10 mb-0.5"
               >
-                <Paperclip size={22} />
+                <Paperclip size={20} />
               </Button>
-              <div className="flex-1 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-full px-5 py-3 shadow-md flex items-center focus-within:ring-2 focus-within:ring-indigo-500/50 transition-all relative overflow-hidden">
+              
+              <div className="flex-1 max-h-32 min-h-[44px] flex items-center relative overflow-y-auto hide-scrollbar py-2 px-2">
                 {isRecording ? (
                   <motion.div 
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="flex-1 min-w-0 flex items-center gap-2 md:gap-3 text-red-500 font-medium"
+                    className="flex-1 flex items-center gap-2 text-red-500 font-medium"
                   >
                     <motion.div 
                       animate={{ scale: [1, 1.2, 1], opacity: [1, 0.5, 1] }}
                       transition={{ repeat: Infinity, duration: 1.5 }}
-                      className="w-2.5 h-2.5 md:w-3 md:h-3 shrink-0 bg-red-500 rounded-full"
+                      className="w-2.5 h-2.5 bg-red-500 rounded-full"
                     />
-                    <span className="truncate text-sm md:text-[15px]">Recording... 0:03</span>
+                    <span className="text-sm">Recording... 0:03</span>
                   </motion.div>
                 ) : (
-                  <input
+                  <textarea
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    onChange={(e) => {
+                      setMessage(e.target.value)
+                      e.target.style.height = 'auto'
+                      e.target.style.height = `${e.target.scrollHeight}px`
+                    }}
                     onKeyDown={handleKeyDown}
                     placeholder="Type your message..."
-                    className="flex-1 min-w-0 bg-transparent text-[15px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
+                    className="w-full bg-transparent text-[15px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none resize-none hide-scrollbar m-0 p-0 block"
+                    rows={1}
+                    style={{ minHeight: '24px' }}
                   />
                 )}
+              </div>
+
+              <div className="flex items-center gap-1 shrink-0 mb-0.5">
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   onClick={() => setIsRecording(!isRecording)}
-                  className={`shrink-0 w-9 h-9 -mr-2 ml-1 rounded-full ${isRecording ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-slate-400 hover:text-indigo-600'}`}
+                  className={`w-10 h-10 rounded-full transition-colors ${isRecording ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400'}`}
                 >
                   <Mic size={20} />
                 </Button>
+                <Button 
+                  onClick={handleSend}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white w-10 h-10 rounded-full flex items-center justify-center p-0 shadow-md shadow-indigo-600/20 transition-transform hover:scale-105"
+                >
+                  <Send size={18} className="ml-0.5" />
+                </Button>
               </div>
-              <Button 
-                onClick={handleSend}
-                className="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white w-12 h-12 rounded-full flex items-center justify-center p-0 shadow-lg shadow-indigo-600/30 transition-transform hover:scale-105"
-              >
-                <Send size={20} className="ml-1" />
-              </Button>
             </div>
           </div>
             </>
