@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
+import { Skeleton } from '@/components/ui/Skeleton'
 
 const users = [
   { id: 1, name: 'Emma Thompson', role: 'student', department: 'Computer Science', email: 'emma.t@edusync.edu', status: 'online', year: '1st Year', section: 'a', studentType: 'rep' },
@@ -33,6 +34,7 @@ const itemVariants: Variants = {
 }
 
 export default function Directory() {
+  const [isLoading, setIsLoading] = useState(true)
   const [usersData, setUsersData] = useState(users)
   const [filter, setFilter] = useState('all')
   const [deptFilter, setDeptFilter] = useState('all')
@@ -51,7 +53,13 @@ export default function Directory() {
   React.useEffect(() => {
     const handleGlobalClick = () => setContextMenu(null)
     window.addEventListener('click', handleGlobalClick)
-    return () => window.removeEventListener('click', handleGlobalClick)
+    
+    // Simulate loading
+    const timer = setTimeout(() => setIsLoading(false), 800)
+    return () => {
+      window.removeEventListener('click', handleGlobalClick)
+      clearTimeout(timer)
+    }
   }, [])
 
   const departments = ['all', ...Array.from(new Set(usersData.map(u => u.department)))]
@@ -337,7 +345,17 @@ export default function Directory() {
               className="divide-y divide-slate-100 dark:divide-slate-800/60"
             >
               <AnimatePresence mode="popLayout">
-                {filteredUsers.map((user) => (
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={`skeleton-${i}`} className="border-b border-slate-100 dark:border-slate-800/60">
+                      <td className="px-6 py-4"><div className="flex items-center gap-3"><Skeleton circle width="32px" height="32px" /><div className="space-y-2"><Skeleton width="120px" height="16px" /><Skeleton width="80px" height="12px" className="sm:hidden" /></div></div></td>
+                      <td className="px-6 py-4"><Skeleton width="80px" height="24px" className="rounded-full" /></td>
+                      <td className="px-6 py-4 hidden sm:table-cell"><Skeleton width="100px" height="16px" /></td>
+                      <td className="px-6 py-4 hidden lg:table-cell"><Skeleton width="150px" height="16px" /></td>
+                      <td className="px-6 py-4 text-right"><Skeleton width="80px" height="32px" className="ml-auto" /></td>
+                    </tr>
+                  ))
+                ) : filteredUsers.map((user) => (
                   <motion.tr 
                     layout
                     key={user.id} 

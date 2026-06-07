@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Avatar } from '@/components/ui/Avatar'
 import { ProgressBar } from '@/components/ui/ProgressBar'
+import { Skeleton } from '@/components/ui/Skeleton'
 import { useAuth } from '@/providers/AuthProvider'
 import { cn } from '@/lib/utils'
 
@@ -51,6 +52,12 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [users, setUsers] = useState(mockUsers)
+  const [isLoading, setIsLoading] = useState(true)
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800)
+    return () => clearTimeout(timer)
+  }, [])
 
   // Access guard
   if (role !== 'principal') {
@@ -218,7 +225,17 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers.map(user => (
+                  {isLoading ? (
+                    Array.from({ length: 4 }).map((_, i) => (
+                      <tr key={`skeleton-${i}`} className="border-b border-slate-100 dark:border-slate-800/60">
+                        <td className="p-4"><div className="flex items-center gap-3"><Skeleton circle width="32px" height="32px" /><div className="space-y-2"><Skeleton width="120px" height="16px" /><Skeleton width="80px" height="12px" /></div></div></td>
+                        <td className="p-4"><Skeleton width="80px" height="24px" className="rounded-md" /></td>
+                        <td className="p-4"><Skeleton width="100px" height="16px" /></td>
+                        <td className="p-4"><Skeleton width="70px" height="24px" className="rounded-full" /></td>
+                        <td className="p-4"><Skeleton width="60px" height="28px" /></td>
+                      </tr>
+                    ))
+                  ) : filteredUsers.map(user => (
                     <tr key={user.id} className="border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                       <td className="p-4">
                         <div className="flex items-center gap-3">

@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card'
 import { Avatar } from '@/components/ui/Avatar'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
+import { Skeleton } from '@/components/ui/Skeleton'
 
 const initialContacts = [
   { id: 1, name: 'Dr. Sarah Jenkins', role: 'Professor', lastMessage: 'The syllabus has been updated.', time: '10:42 AM', unread: 2, avatar: 'SJ' },
@@ -42,6 +43,7 @@ export default function Messages() {
   const [archivedChatIds, setArchivedChatIds] = useState<number[]>([])
   const [showArchived, setShowArchived] = useState(false)
   const [pinnedChatIds, setPinnedChatIds] = useState<number[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   
   useEffect(() => {
     // Generate bubbles only on client side to prevent hydration mismatch
@@ -78,7 +80,13 @@ export default function Messages() {
       setContactContextMenu(null)
     }
     window.addEventListener('click', handleGlobalClick)
-    return () => window.removeEventListener('click', handleGlobalClick)
+    
+    // Simulate loading
+    const timer = setTimeout(() => setIsLoading(false), 800)
+    return () => {
+      window.removeEventListener('click', handleGlobalClick)
+      clearTimeout(timer)
+    }
   }, [])
 
   const handleFilesSelect = (files: FileList | File[]) => {
@@ -292,7 +300,17 @@ export default function Messages() {
           </div>
           <div className="flex-1 overflow-y-auto p-2 overflow-x-hidden">
             <AnimatePresence mode="popLayout">
-              {filteredContacts.length === 0 ? (
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <div key={`skeleton-${i}`} className="w-full text-left p-3 rounded-2xl mb-1 flex items-center gap-3">
+                    <Skeleton circle width="48px" height="48px" />
+                    <div className="flex-1 space-y-2">
+                      <div className="flex justify-between"><Skeleton width="100px" height="16px" /><Skeleton width="40px" height="12px" /></div>
+                      <Skeleton width="150px" height="14px" />
+                    </div>
+                  </div>
+                ))
+              ) : filteredContacts.length === 0 ? (
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
