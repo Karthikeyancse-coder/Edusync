@@ -12,11 +12,8 @@ export type NavItem = {
   badge?: number
 }
 
-// Common bottom items shared across all roles
 const commonBottom: NavItem[] = [
   { icon: Search, label: 'Search', href: '/search' },
-  { icon: Bell, label: 'Notices', href: '/announcements' },
-  { icon: UserCircle, label: 'Profile', href: '/profile' },
 ]
 
 export const getNavItems = (role: Role | null): NavItem[] => {
