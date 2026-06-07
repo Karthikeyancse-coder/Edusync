@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { useAuth } from '@/providers/AuthProvider'
 
 const users = [
   { id: 1, name: 'Emma Thompson', role: 'student', department: 'Computer Science', email: 'emma.t@edusync.edu', status: 'online', year: '1st Year', section: 'a', studentType: 'rep' },
@@ -34,6 +35,7 @@ const itemVariants: Variants = {
 }
 
 export default function Directory() {
+  const { role } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [usersData, setUsersData] = useState(users)
   const [filter, setFilter] = useState('all')
@@ -119,10 +121,12 @@ export default function Directory() {
               className="pl-10 bg-white dark:bg-surface border-slate-200 dark:border-slate-800" 
             />
           </div>
-          <Button onClick={() => setIsAddUserModalOpen(true)} className="gap-2 shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white">
-            <UserPlus size={18} />
-            Add User
-          </Button>
+          {role !== 'student' && (
+            <Button onClick={() => setIsAddUserModalOpen(true)} className="gap-2 shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white">
+              <UserPlus size={18} />
+              Add User
+            </Button>
+          )}
             <Button onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)} variant="outline" className="gap-2 shrink-0 border-slate-200 dark:border-slate-800 bg-white dark:bg-surface relative">
               <Filter size={18} />
               Filters
