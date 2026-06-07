@@ -86,6 +86,8 @@ export default function Messages() {
     const params = new URLSearchParams(window.location.search)
     const userId = params.get('userId')
     const name = params.get('name')
+    const isGroup = params.get('isGroup') === 'true'
+    
     if (userId && name) {
       const existing = initialContacts.find(c => c.name === name)
       if (existing) {
@@ -94,7 +96,7 @@ export default function Messages() {
         const newContact = { 
           id: parseInt(userId) + 1000, 
           name, 
-          role: 'Directory User', 
+          role: isGroup ? 'Group' : 'Directory User', 
           lastMessage: '', 
           time: 'Just now', 
           unread: 0, 

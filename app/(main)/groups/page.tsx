@@ -118,8 +118,8 @@ export default function Groups() {
     }
   }
 
-  const handleChat = () => {
-    router.push('/messages')
+  const handleChat = (group: any) => {
+    router.push(`/messages?userId=${group.id}&name=${encodeURIComponent(group.name)}&isGroup=true`)
   }
 
   const filteredGroups = groupsData.filter(group => {
@@ -281,7 +281,7 @@ export default function Groups() {
                       <div key={i} className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 border-2 border-white dark:border-slate-900" />
                     ))}
                   </div>
-                  <Button onClick={handleChat} size="sm" variant="outline" className="gap-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/30">
+                  <Button onClick={() => handleChat(group)} size="sm" variant="outline" className="gap-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/30">
                     <MessageSquare size={14} />
                     Chat
                   </Button>
