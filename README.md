@@ -2,16 +2,10 @@
 
 <br/>
 
-```
-███████╗██████╗ ██╗   ██╗███████╗██╗   ██╗███╗   ██╗ ██████╗
-██╔════╝██╔══██╗██║   ██║██╔════╝╚██╗ ██╔╝████╗  ██║██╔════╝
-█████╗  ██║  ██║██║   ██║███████╗ ╚████╔╝ ██╔██╗ ██║██║
-██╔══╝  ██║  ██║██║   ██║╚════██║  ╚██╔╝  ██║╚██╗██║██║
-███████╗██████╔╝╚██████╔╝███████║   ██║   ██║ ╚████║╚██████╗
-╚══════╝╚═════╝  ╚═════╝ ╚══════╝   ╚═╝   ╚═╝  ╚═══╝ ╚═════╝
-```
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=42&pause=1000&color=7C6FFF&center=true&vCenter=true&width=600&height=80&lines=EduSync" alt="EduSync" />
 
-### 🎓 The All-in-One College Communication & Management Platform
+<h3>🎓 The All-in-One College Communication & Management Platform</h3>
+
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19-61dafb?style=for-the-badge&logo=react)](https://react.dev)
