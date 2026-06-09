@@ -1,5 +1,5 @@
 <!-- HEADER WAVE -->
-<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=7C6FFF&height=200&section=header&text=EduSync&fontSize=80&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=The%20All-in-One%20College%20Management%20Platform&descAlignY=60&descColor=ffffff&descSize=18" />
+<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,14,30&height=200&section=header&text=EduSync&fontSize=80&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=The%20All-in-One%20College%20Management%20Platform&descAlignY=60&descColor=ffffff&descSize=18" alt="EduSync Header" />
 
 <div align="center">
 
@@ -60,7 +60,7 @@ Every user gets a **unique EduSync ID**, a verified role, and a personalized das
 <br/>
 
 <!-- FEATURES -->
-## <img src="https://media2.giphy.com/media/QssGEmpkyEOhBCb7e1/giphy.gif?cid=ecf05e47a0n3gi1bfqntqmob8g9aid1oyj2wr3ds3mg700bl&rid=giphy.gif" width="28"/> Features
+## ⚙️ Features
 
 <table>
 <tr>
@@ -327,11 +327,13 @@ This project is licensed under the [MIT License](LICENSE).
 
 <br/>
 
-<!-- FOOTER WAVE -->
-<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=7C6FFF&height=120&section=footer&animation=fadeIn" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://capsule-render.vercel.app/api?type=waving&color=7C6FFF&height=120&section=footer&animation=fadeIn&fontColor=ffffff" />
+  <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=7C6FFF&height=120&section=footer&animation=fadeIn&fontColor=ffffff" alt="footer wave" />
+</picture>
 
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=14&pause=2000&color=7C6FFF&center=true&vCenter=true&width=500&height=40&lines=Built+with+%E2%9D%A4%EF%B8%8F+for+modern+education+%7C+EduSync+—+Sync+your+campus." alt="footer" />
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=14&pause=2000&color=7C6FFF&center=true&vCenter=true&width=600&height=40&lines=Built+with+%E2%9D%A4%EF%B8%8F+for+modern+education+%7C+EduSync+%E2%80%94+Sync+your+campus." alt="EduSync tagline" />
 
 </div>
