@@ -2,13 +2,13 @@
 
 import React from 'react'
 import { motion, Variants, AnimatePresence } from 'framer-motion'
-import { Bell, Calendar, Pin, AlertCircle, FileText, ChevronRight, UploadCloud, File as FileIcon, Paperclip, Image as ImageIcon, Mic, Send, Edit2, Copy, Trash2 } from 'lucide-react'
+import { Bell, Calendar, Pin, AlertCircle, FileText, ChevronRight, File as FileIcon, Paperclip, Mic, Send, Edit2, Copy, Trash2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
-
 import { Input } from '@/components/ui/Input'
 import { X } from 'lucide-react'
+import { useAuth } from '@/providers/AuthProvider'
 
 const initialAnnouncements = [
   {
@@ -67,6 +67,8 @@ const itemVariants: Variants = {
 }
 
 export default function Announcements() {
+  const { role } = useAuth()
+  const canPost = role === 'principal' || role === 'hod'
   const [announcementsData, setAnnouncementsData] = React.useState(initialAnnouncements)
   const [expandedIds, setExpandedIds] = React.useState<Set<number>>(new Set())
   const [isPostModalOpen, setIsPostModalOpen] = React.useState(false)
@@ -149,7 +151,7 @@ export default function Announcements() {
   }
 
   return (
-    <div className="p-6 md:p-8 min-h-[calc(100vh-theme(spacing.16))] md:min-h-screen relative bg-red-300 dark:bg-slate-900 overflow-hidden">
+    <div className="p-6 md:p-8 min-h-[calc(100vh-theme(spacing.16))] md:min-h-screen relative overflow-hidden">
       {/* Context Menu */}
       <AnimatePresence>
         {contextMenu && (
@@ -233,10 +235,12 @@ export default function Announcements() {
             Stay updated with the latest news and important notices.
           </p>
         </div>
-        <Button onClick={() => { setEditingId(null); setIsPostModalOpen(true); }} className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">
-          <Bell size={18} />
-          Post Announcement
-        </Button>
+        {canPost && (
+          <Button onClick={() => { setEditingId(null); setIsPostModalOpen(true); }} className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">
+            <Bell size={18} />
+            Post Announcement
+          </Button>
+        )}
       </motion.div>
 
       {/* Announcements Timeline */}
@@ -264,7 +268,7 @@ export default function Announcements() {
               </div>
 
               <Card 
-                onContextMenu={(e) => handleContextMenu(e, announcement)}
+                onContextMenu={canPost ? (e) => handleContextMenu(e, announcement) : undefined}
                 className={`group relative overflow-hidden bg-white/50 dark:bg-surface/50 backdrop-blur-sm transition-all duration-300 hover:shadow-md ${
                 isUrgent ? 'border-red-200 dark:border-red-900/50' : 'border-slate-200/60 dark:border-slate-800/60'
               }`}>
@@ -323,7 +327,7 @@ export default function Announcements() {
 
       {/* Post Modal */}
       <AnimatePresence>
-        {isPostModalOpen && (
+        {isPostModalOpen && canPost && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
