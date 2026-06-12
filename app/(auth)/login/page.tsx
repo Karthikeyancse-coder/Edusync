@@ -23,8 +23,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const { demoLogin } = useAuth()
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleLogin = async () => {
     if (!uniqueId || !password) {
       setError('Please enter both ID and password')
       return
@@ -89,7 +88,7 @@ export default function LoginPage() {
               Welcome back! Please enter your details.
             </p>
 
-            <form onSubmit={handleLogin} className="flex flex-col gap-5">
+            <div className="flex flex-col gap-5" onKeyDown={(e) => e.key === 'Enter' && handleLogin()}>
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -149,7 +148,7 @@ export default function LoginPage() {
                 className="mt-2"
               >
                 <Button
-                  type="submit"
+                  onClick={handleLogin}
                   variant="primary"
                   className="w-full"
                   loading={isLoading}
@@ -162,7 +161,7 @@ export default function LoginPage() {
                   )}
                 </Button>
               </motion.div>
-            </form>
+            </div>
 
             <div className="flex items-center my-6">
               <div className="flex-1 border-t border-default"></div>

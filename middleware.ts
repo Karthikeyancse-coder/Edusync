@@ -40,6 +40,21 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // /approvals → faculty and hod only (not student or principal)
+  if (pathname.startsWith('/approvals')) {
+    if (demoRole) {
+      if (demoRole === 'student' || demoRole === 'principal') {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+    } else if (user) {
+      const { data: profile } = await supabase
+        .from('users').select('role').eq('id', user?.id).single()
+      if (profile?.role === 'student' || profile?.role === 'principal') {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+    }
+  }
+
   return response
 }
 
