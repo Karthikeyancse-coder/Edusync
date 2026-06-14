@@ -99,7 +99,7 @@ export default function LoginPage() {
                   icon={<Hash size={18} />}
                   value={uniqueId}
                   onChange={(e) => setUniqueId(e.target.value)}
-                  error={error && !uniqueId ? ' ' : undefined}
+                  error={!!(error && !uniqueId)}
                 />
               </motion.div>
 
@@ -114,7 +114,7 @@ export default function LoginPage() {
                   icon={<Lock size={18} />}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  error={error && !password ? ' ' : undefined}
+                  error={!!(error && !password)}
                   rightElement={
                     <button
                       type="button"
@@ -133,9 +133,8 @@ export default function LoginPage() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="flex items-center gap-2 text-[var(--error)] text-sm bg-[var(--error)]/10 p-3 rounded-input"
+                    className="flex items-center text-[var(--error)] text-sm bg-[var(--error)]/10 p-3 rounded-input"
                   >
-                    <AlertCircle size={16} className="shrink-0" />
                     <span>{error}</span>
                   </motion.div>
                 )}

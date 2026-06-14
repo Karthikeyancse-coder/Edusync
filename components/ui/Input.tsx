@@ -5,7 +5,7 @@ import { AlertCircle } from 'lucide-react'
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
-  error?: string
+  error?: string | boolean
   icon?: React.ReactNode
   rightElement?: React.ReactNode
 }
@@ -44,14 +44,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         </div>
         
         <AnimatePresence>
-          {error && (
+          {typeof error === 'string' && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex items-center gap-1.5 text-[var(--error)] text-xs mt-1"
+              className="flex items-center text-[var(--error)] text-xs mt-1"
             >
-              <AlertCircle size={14} />
               <span>{error}</span>
             </motion.div>
           )}
