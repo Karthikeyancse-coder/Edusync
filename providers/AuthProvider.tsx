@@ -25,26 +25,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const supabase = createClient()
 
+  const DEMO_PROFILES: Record<string, { name: string; unique_id: string; department: string; role: Role }> = {
+    student:   { name: 'Aarav Shah',        unique_id: 'STU-CSE-2024-001', department: 'Computer Science', role: 'student' },
+    faculty:   { name: 'Dr. Sarah Jenkins', unique_id: 'FAC-CSE-001',      department: 'Mathematics',      role: 'faculty' },
+    hod:       { name: 'Prof. Alan Turing', unique_id: 'HOD-CSE-001',      department: 'Computer Science', role: 'hod' },
+    principal: { name: 'Admin Principal',   unique_id: 'PRIN-001',         department: 'Administration',   role: 'principal' },
+  }
+
   useEffect(() => {
     let mounted = true
 
+    // Helper — build a full demo profile from cookie role
+    function buildDemoProfile(demoRole: string): User {
+      const demo = DEMO_PROFILES[demoRole]
+      return {
+        id: 'demo-123',
+        unique_id: demo?.unique_id ?? `DEMO-${demoRole.toUpperCase()}`,
+        name: demo?.name ?? `Demo ${demoRole}`,
+        role: (demo?.role ?? demoRole) as Role,
+        department: demo?.department ?? 'Computer Science',
+        is_active: true,
+        avatar_color: '#7C6FFF',
+        created_at: new Date().toISOString(),
+      } as User
+    }
+
     async function getSession() {
-      // Check for demo role in cookies
+      // Check for demo role in cookies first
       const match = document.cookie.match(new RegExp('(^| )demo_role=([^;]+)'))
       const demoRole = match ? match[2] : null
 
       if (demoRole && mounted) {
-        setProfile({
-          id: 'demo-123',
-          unique_id: `DEMO-${demoRole.toUpperCase()}`,
-          name: `Demo ${demoRole}`,
-          role: demoRole as Role,
-          department: 'Computer Science',
-          is_active: true,
-          avatar_color: '#7C6FFF',
-          created_at: new Date().toISOString()
-        } as User)
-        setUser({ id: 'demo-123', email: `demo@edusync.edu` } as SupabaseUser)
+        // Restore the full demo profile on refresh
+        setProfile(buildDemoProfile(demoRole))
+        setUser({ id: 'demo-123', email: `${demoRole}@edusync.edu` } as SupabaseUser)
         setIsLoading(false)
         return
       }
@@ -79,14 +93,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        if (mounted) {
-          setUser(session?.user ?? null)
-          if (session?.user) {
-            fetchProfile(session.user.id)
-          } else {
-            setProfile(null)
-            setIsLoading(false)
-          }
+        if (!mounted) return
+        // Skip if this is a demo session — don't overwrite the demo profile
+        const isDemoSession = document.cookie.includes('demo_role=')
+        if (isDemoSession) return
+
+        setUser(session?.user ?? null)
+        if (session?.user) {
+          fetchProfile(session.user.id)
+        } else {
+          setProfile(null)
+          setIsLoading(false)
         }
       }
     )
@@ -104,12 +121,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const demoLogin = (role: Role) => {
-    const DEMO_PROFILES: Record<Role, { name: string; unique_id: string; department: string }> = {
-      student:   { name: 'Aarav Shah',       unique_id: 'STU-CSE-2024-001', department: 'Computer Science' },
-      faculty:   { name: 'Dr. Sarah Jenkins', unique_id: 'FAC-CSE-001',      department: 'Mathematics' },
-      hod:       { name: 'Prof. Alan Turing',  unique_id: 'HOD-CSE-001',      department: 'Computer Science' },
-      principal: { name: 'Admin Principal',    unique_id: 'PRIN-001',         department: 'Administration' },
-    }
     const demo = DEMO_PROFILES[role]
     document.cookie = `demo_role=${role}; path=/`
     setProfile({
