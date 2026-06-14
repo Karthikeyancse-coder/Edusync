@@ -472,8 +472,16 @@ export default function Messages() {
                         {contact.avatar}
                       </div>
                       {contact.unread > 0 && (
-                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full border-2 border-white dark:border-surface flex items-center justify-center text-[10px] font-bold text-white">
+                        <span className={`absolute -top-1 -right-1 w-5 h-5 rounded-full border-2 border-white dark:border-surface flex items-center justify-center text-[10px] font-bold text-white ${
+                          mutedContacts.includes(contact.id) ? 'bg-slate-400 dark:bg-slate-500' : 'bg-red-500'
+                        }`}>
                           {contact.unread}
+                        </span>
+                      )}
+                      {/* Mute indicator badge on avatar */}
+                      {mutedContacts.includes(contact.id) && contact.unread === 0 && (
+                        <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-slate-500 rounded-full border-2 border-white dark:border-surface flex items-center justify-center">
+                          <BellOff size={8} className="text-white" />
                         </span>
                       )}
                     </div>
@@ -482,6 +490,7 @@ export default function Messages() {
                         <h3 className="font-semibold text-slate-900 dark:text-white truncate flex items-center gap-2">
                           {contact.name}
                           {pinnedChatIds.includes(contact.id) && <Pin size={12} className="text-slate-400" />}
+                          {mutedContacts.includes(contact.id) && <BellOff size={11} className="text-slate-400" />}
                         </h3>
                         <span className="text-xs text-slate-500">{contact.time}</span>
                       </div>
@@ -548,7 +557,14 @@ export default function Messages() {
                     {activeContact.name}
                     {activeContact.role === 'Group' && <ChevronRight size={14} className="text-slate-400" />}
                   </h3>
-                  <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mt-0.5">{activeContact.role}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">{activeContact.role}</p>
+                    {mutedContacts.includes(activeContact.id) && (
+                      <span className="flex items-center gap-1 text-[10px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-full">
+                        <BellOff size={9} /> Muted
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             <div className="relative z-[60]">
@@ -679,27 +695,54 @@ export default function Messages() {
             )}
           </AnimatePresence>
 
-          {/* Select Mode Banner */}
+          {/* Select Mode Banner + Bottom Action Bar */}
           <AnimatePresence>
             {selectMode && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="relative z-10 shrink-0 px-4 py-2.5 flex items-center justify-between bg-indigo-600 text-white"
-              >
-                <span className="text-sm font-semibold">{selectedMsgIds.length} selected</span>
-                <div className="flex items-center gap-2">
-                  {selectedMsgIds.length > 0 && (
-                    <button onClick={handleDeleteSelected} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 hover:bg-red-600 rounded-lg text-xs font-bold transition-colors">
-                      <Trash2 size={12} /> Delete
-                    </button>
-                  )}
+              <>
+                {/* Top count banner */}
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="relative z-10 shrink-0 px-4 py-2.5 flex items-center justify-between bg-indigo-600 text-white"
+                >
+                  <span className="text-sm font-semibold">{selectedMsgIds.length} selected</span>
                   <button onClick={handleCancelSelectMode} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors">
                     <X size={16} />
                   </button>
-                </div>
-              </motion.div>
+                </motion.div>
+
+                {/* Bottom floating action bar (appears when ≥1 selected) */}
+                {selectedMsgIds.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    className="absolute bottom-24 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl px-2 py-1.5"
+                  >
+                    {[
+                      { icon: Copy,    label: 'Copy',    action: () => { const texts = chatMessages.filter(m => selectedMsgIds.includes(m.id) && m.text).map(m => m.text).join('\n'); navigator.clipboard.writeText(texts); handleCancelSelectMode() } },
+                      { icon: Forward, label: 'Forward', action: () => { alert(`Forwarding ${selectedMsgIds.length} message(s)`); handleCancelSelectMode() } },
+                      { icon: Star,    label: 'Star',    action: () => { alert(`Starred ${selectedMsgIds.length} message(s)`); handleCancelSelectMode() } },
+                      { icon: Trash2,  label: 'Delete',  action: handleDeleteSelected, danger: true },
+                    ].map(({ icon: Icon, label, action, danger }) => (
+                      <button
+                        key={label}
+                        onClick={action}
+                        title={label}
+                        className={`flex flex-col items-center gap-0.5 px-3.5 py-2 rounded-xl text-[11px] font-bold transition-colors ${
+                          danger
+                            ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
+                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
+                        }`}
+                      >
+                        <Icon size={18} />
+                        {label}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </>
             )}
           </AnimatePresence>
 
