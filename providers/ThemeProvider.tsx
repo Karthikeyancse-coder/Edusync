@@ -17,6 +17,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const stored = localStorage.getItem('edusync-theme') as Theme | null
     if (stored) {
+      // eslint-disable-next-line
       setTheme(stored)
       document.documentElement.classList.toggle('dark', stored === 'dark')
       document.documentElement.classList.toggle('light', stored === 'light')

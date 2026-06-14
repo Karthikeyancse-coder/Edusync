@@ -10,6 +10,7 @@ export function ThemeToggle() {
   const [mounted, setMounted] = React.useState(false)
 
   // Avoid hydration mismatch
+  // eslint-disable-next-line
   React.useEffect(() => setMounted(true), [])
   if (!mounted) return <div className="w-9 h-9" />
 

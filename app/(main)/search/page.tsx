@@ -60,6 +60,7 @@ export default function SearchPage() {
 
   useEffect(() => {
     if (!query.trim()) {
+      // eslint-disable-next-line
       setResults([])
       setIsSearching(false)
       return

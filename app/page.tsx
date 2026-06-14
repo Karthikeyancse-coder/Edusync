@@ -249,7 +249,7 @@ export default function LandingPage() {
             College Communication is <span className="text-red-400">Broken</span>
           </motion.h2>
           <motion.p {...fadeUp(0.1)} className="text-slate-400 text-center text-lg max-w-2xl mx-auto mb-16">
-            Most colleges rely on WhatsApp groups, printed marksheets, physical attendance registers, and email chains. It's chaotic, untracked, and insecure.
+            Most colleges rely on WhatsApp groups, printed marksheets, physical attendance registers, and email chains. It&apos;s chaotic, untracked, and insecure.
           </motion.p>
 
           <div className="grid md:grid-cols-2 gap-6">

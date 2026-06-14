@@ -65,7 +65,7 @@ export function Iridescence({ color = [1, 1, 1], speed = 1.0, amplitude = 0.1, m
       const scale = 1;
       renderer.setSize(ctn.offsetWidth * scale, ctn.offsetHeight * scale);
       if (program) {
-        program.uniforms.uResolution.value = new Color(
+        (program as any).uniforms.uResolution.value = new Color(
           gl.canvas.width,
           gl.canvas.height,
           gl.canvas.width / gl.canvas.height
