@@ -1495,33 +1495,29 @@ export default function Messages() {
       </AnimatePresence>
       {/* ══════════ NON-DUMMY MODALS ══════════ */}
 
-      {/* Calling State Modal */}
+      {/* Calling State Modal (Coming Soon) */}
       <AnimatePresence>
         {callingState && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-slate-900/95 backdrop-blur-xl flex flex-col items-center justify-center text-white">
-            <div className="absolute top-10 flex flex-col items-center gap-2">
-              <div className="w-32 h-32 rounded-full bg-indigo-500/20 flex items-center justify-center animate-pulse">
-                <div className="w-24 h-24 rounded-full bg-indigo-500 flex items-center justify-center text-4xl font-bold shadow-[0_0_40px_rgba(99,102,241,0.6)]">
-                  {callingState.contact.avatar}
-                </div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-sm flex flex-col items-center p-8 shadow-2xl border border-slate-100 dark:border-slate-800 text-center relative overflow-hidden">
+              <button onClick={() => setCallingState(null)} className="absolute top-4 right-4 p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+                <X size={20} />
+              </button>
+              
+              <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 rounded-full flex items-center justify-center mb-6 relative">
+                <div className="absolute inset-0 bg-indigo-500 rounded-full opacity-20 animate-ping"></div>
+                {callingState.type === 'video' ? <Video size={36} className="relative z-10" /> : <Phone size={36} className="relative z-10" />}
               </div>
-              <h2 className="text-3xl font-bold mt-4">{callingState.contact.name}</h2>
-              <p className="text-indigo-300 font-medium">{callingState.type === 'video' ? 'Video calling...' : 'Ringing...'}</p>
-            </div>
-            
-            <div className="absolute bottom-20 flex gap-6">
-              <button className="w-16 h-16 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md transition-colors">
-                <MicOff size={24} />
+              
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">Feature in Development</h3>
+              <p className="text-slate-500 dark:text-slate-400 leading-relaxed mb-8 text-sm">
+                We are actively working on bringing high-quality {callingState.type === 'video' ? 'video' : 'audio'} calls to EduSync. Please check back later!
+              </p>
+              
+              <button onClick={() => setCallingState(null)} className="w-full py-3.5 bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-md">
+                Okay, I'll wait
               </button>
-              {callingState.type === 'video' && (
-                <button className="w-16 h-16 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md transition-colors">
-                  <VideoOff size={24} />
-                </button>
-              )}
-              <button onClick={() => setCallingState(null)} className="w-16 h-16 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.5)] transition-colors">
-                <Phone size={24} className="rotate-[135deg]" />
-              </button>
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
