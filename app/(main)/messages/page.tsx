@@ -1630,7 +1630,7 @@ export default function Messages() {
               {/* Fake QR Code */}
               <div className="w-48 h-48 bg-white border-2 border-slate-200 rounded-xl p-2 mb-6 flex flex-wrap gap-1 items-center justify-center opacity-80">
                 {Array.from({ length: 64 }).map((_, i) => (
-                  <div key={i} className={`w-4 h-4 rounded-sm ${Math.random() > 0.5 ? 'bg-slate-900' : 'bg-transparent'}`} />
+                  <div key={i} className={`w-4 h-4 rounded-sm ${i % 3 === 0 ? 'bg-slate-900' : 'bg-transparent'}`} />
                 ))}
               </div>
               

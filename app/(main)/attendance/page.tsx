@@ -30,7 +30,7 @@ const generateStudents = (): StudentRecord[] =>
       'Aditya Sharma', 'Pooja Joshi', 'Suresh Babu', 'Nisha Thomas', 'Ravi Krishnan', 'Divya Menon',
       'Nikhil Jain', 'Sanjana Kulkarni', 'Akash Pandey', 'Kavita Yadav', 'Sachin Mishra', 'Uma Chandran'][i],
     roll: `23CS${String(i + 1).padStart(3, '0')}`,
-    overall: Math.floor(Math.random() * 40) + 55,
+    overall: 55 + ((i * 7) % 40),
     present: null,
   }))
 
