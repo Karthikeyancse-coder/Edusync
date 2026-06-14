@@ -59,7 +59,7 @@ export const getNavItems = (role: Role | null): NavItem[] => {
     { icon: LayoutDashboard, label: 'Dashboard',     href: '/dashboard' },
     { icon: MessageSquare,   label: 'Messages',      href: '/messages' },
     { icon: Users,           label: 'Groups',        href: '/groups' },
-    { icon: BookCheck,       label: 'Attendance',    href: '/attendance' },
+    { icon: BookCheck,       label: 'Attendance Performance', href: '/attendance' },
     { icon: BarChart2,       label: 'Marks',         href: '/marks' },
     { icon: Calendar,        label: 'Timetable',     href: '/timetable' },
     { icon: Megaphone,       label: 'Announcements', href: '/announcements' },

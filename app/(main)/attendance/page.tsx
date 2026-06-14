@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Avatar } from '@/components/ui/Avatar'
 import { ProgressBar } from '@/components/ui/ProgressBar'
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { useAuth } from '@/providers/AuthProvider'
 import { cn } from '@/lib/utils'
 
@@ -33,11 +34,33 @@ const generateStudents = (): StudentRecord[] =>
     present: null,
   }))
 
+const weeklyTrendData = [
+  { day: 'Mon', attendance: 85 },
+  { day: 'Tue', attendance: 88 },
+  { day: 'Wed', attendance: 84 },
+  { day: 'Thu', attendance: 91 },
+  { day: 'Fri', attendance: 79 },
+]
+
+const departmentData = [
+  { name: 'CSE', attendance: 88 },
+  { name: 'ECE', attendance: 82 },
+  { name: 'MECH', attendance: 76 },
+  { name: 'CIVIL', attendance: 80 },
+  { name: 'IT', attendance: 91 },
+]
+
+const statusData = [
+  { name: 'Healthy (>75%)', value: 85, color: '#10B981' },
+  { name: 'At Risk (60-75%)', value: 12, color: '#F59E0B' },
+  { name: 'Critical (<60%)', value: 3, color: '#EF4444' },
+]
+
 type AttendanceView = 'mark' | 'overview'
 
 export default function AttendancePage() {
   const { role } = useAuth()
-  const [view, setView] = useState<AttendanceView>(role === 'student' ? 'overview' : 'mark')
+  const [view, setView] = useState<AttendanceView>(role === 'student' || role === 'principal' ? 'overview' : 'mark')
   const [selectedClass, setSelectedClass] = useState(CLASSES[0])
   const [selectedSubject, setSelectedSubject] = useState(SUBJECTS[0])
   const [students, setStudents] = useState<StudentRecord[]>(generateStudents)
@@ -93,11 +116,13 @@ export default function AttendancePage() {
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8"
       >
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Attendance</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+            {role === 'principal' ? 'Attendance Performance' : 'Attendance'}
+          </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{today}</p>
         </div>
 
-        {role !== 'student' && (
+        {role !== 'student' && role !== 'principal' && (
           <div className="flex rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
             {(['mark', 'overview'] as const).map(v => (
               <button
@@ -164,8 +189,8 @@ export default function AttendancePage() {
         </motion.div>
       )}
 
-      {/* FACULTY / HOD / PRINCIPAL VIEWS */}
-      {role !== 'student' && view === 'mark' && (
+      {/* FACULTY / HOD VIEWS (MARK ATTENDANCE) */}
+      {role !== 'student' && role !== 'principal' && view === 'mark' && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
           {/* Controls */}
           <Card>
@@ -276,7 +301,7 @@ export default function AttendancePage() {
 
       {/* OVERVIEW VIEW */}
       {role !== 'student' && view === 'overview' && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { label: 'Average Attendance', value: '82%', trend: 'good' },
@@ -284,36 +309,110 @@ export default function AttendancePage() {
               { label: 'Below 60%', value: '3 students', trend: 'danger' },
               { label: 'Perfect (100%)', value: '8 students', trend: 'good' },
             ].map(stat => (
-              <Card key={stat.label}>
+              <Card key={stat.label} className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-slate-200/60 dark:border-slate-800/60">
                 <CardContent className="p-5">
-                  <p className="text-sm text-slate-500 mb-1">{stat.label}</p>
+                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1">{stat.label}</p>
                   <p className={cn(
-                    "text-2xl font-black",
-                    stat.trend === 'good' ? 'text-emerald-600' : stat.trend === 'warn' ? 'text-amber-600' : 'text-red-600'
+                    "text-3xl font-black tracking-tight",
+                    stat.trend === 'good' ? 'text-emerald-600 dark:text-emerald-400' : stat.trend === 'warn' ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'
                   )}>{stat.value}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          <Card>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-slate-200/60 dark:border-slate-800/60">
+              <CardHeader>
+                <CardTitle className="text-lg">Weekly Trend</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={weeklyTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.5} />
+                      <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12 }} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12 }} domain={[0, 100]} />
+                      <Tooltip 
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)' }}
+                        itemStyle={{ color: '#0F172A', fontWeight: 600 }}
+                        formatter={(value) => [`${value}%`, 'Attendance']}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="attendance" 
+                        stroke="#4F46E5" 
+                        strokeWidth={4} 
+                        dot={{ r: 6, fill: '#4F46E5', strokeWidth: 2, stroke: '#FFFFFF' }} 
+                        activeDot={{ r: 8, fill: '#4F46E5', stroke: '#FFFFFF', strokeWidth: 2 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-slate-200/60 dark:border-slate-800/60">
+              <CardHeader>
+                <CardTitle className="text-lg">Attendance Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px] w-full flex items-center justify-center relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={statusData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={80}
+                        outerRadius={110}
+                        paddingAngle={5}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        {statusData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value) => [`${value}%`, 'Students']}
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}
+                      />
+                      <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[calc(50%+18px)] text-center">
+                    <span className="text-3xl font-black text-slate-900 dark:text-white">82%</span>
+                    <p className="text-xs text-slate-500 font-medium">Avg Total</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-slate-200/60 dark:border-slate-800/60">
             <CardHeader>
-              <CardTitle>Subject-wise Overview</CardTitle>
+              <CardTitle className="text-lg">Department Comparison</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {SUBJECTS.map((subject, i) => {
-                  const pct = [84, 71, 92, 65][i] || 80
-                  return (
-                    <div key={subject}>
-                      <div className="flex justify-between mb-1 text-sm">
-                        <span className="font-medium text-slate-700 dark:text-slate-300">{subject}</span>
-                        <span className={cn("font-bold", getAttendanceColor(pct))}>{pct}%</span>
-                      </div>
-                      <ProgressBar value={pct} height="h-2.5" color={getBarColor(pct)} />
-                    </div>
-                  )
-                })}
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={departmentData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={40}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.5} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12 }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12 }} domain={[0, 100]} />
+                    <Tooltip 
+                      cursor={{ fill: 'rgba(79, 70, 229, 0.05)' }}
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
+                      formatter={(value) => [`${value}%`, 'Attendance']}
+                    />
+                    <Bar dataKey="attendance" fill="#818CF8" radius={[6, 6, 0, 0]}>
+                      {departmentData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.attendance >= 85 ? '#10B981' : entry.attendance >= 75 ? '#818CF8' : '#F59E0B'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
