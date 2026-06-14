@@ -47,6 +47,7 @@ export default function Messages() {
   const [pinnedChatIds, setPinnedChatIds] = useState<number[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDragging, setIsDragging] = useState(false)
+  const [dismissedApprovalBanner, setDismissedApprovalBanner] = useState(false)
   
   useEffect(() => {
     // Generate bubbles only on client side to prevent hydration mismatch
@@ -112,6 +113,9 @@ export default function Messages() {
         })
         setActiveContact(newContact)
       }
+      
+      // Reset banner dismiss when switching contact
+      setDismissedApprovalBanner(false)
       
       // Clean up the URL without triggering a page reload
       window.history.replaceState({}, '', '/messages')
@@ -398,7 +402,7 @@ export default function Messages() {
                     exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
                     transition={{ type: "spring", stiffness: 500, damping: 40 }}
                     key={contact.id}
-                    onClick={() => setActiveContact(contact)}
+                    onClick={() => { setActiveContact(contact); setDismissedApprovalBanner(false); }}
                     onContextMenu={(e) => {
                       e.preventDefault()
                       setContactContextMenu({
@@ -496,7 +500,7 @@ export default function Messages() {
                   <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mt-0.5">{activeContact.role}</p>
                 </div>
               </div>
-            <div className="relative">
+            <div className="relative z-[60]">
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -512,7 +516,7 @@ export default function Messages() {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 10 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 top-12 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50"
+                    className="absolute right-0 top-12 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-[100]"
                   >
                     <button onClick={handleContactInfo} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                       <User size={16} /> Contact Info
@@ -537,7 +541,7 @@ export default function Messages() {
           </div>
 
           {/* Approval Chain Info Banner */}
-          {activeContact?.role?.toLowerCase() === 'principal' && (
+          {activeContact?.role?.toLowerCase() === 'principal' && !dismissedApprovalBanner && (
             <div className="relative z-20 shrink-0 px-4 py-2.5 flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800/50">
               <div className="mt-0.5 w-4 h-4 shrink-0 rounded-full bg-amber-500 flex items-center justify-center">
                 <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1v3M4 6h.01" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
@@ -560,9 +564,17 @@ export default function Messages() {
                   ))}
                 </div>
               </div>
+              {/* Dismiss X button */}
+              <button
+                onClick={() => setDismissedApprovalBanner(true)}
+                className="shrink-0 p-1 rounded-full text-amber-600 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-800/50 transition-colors"
+                aria-label="Dismiss"
+              >
+                <X size={14} />
+              </button>
             </div>
           )}
-          {activeContact?.role?.toLowerCase() === 'hod' && (
+          {activeContact?.role?.toLowerCase() === 'hod' && !dismissedApprovalBanner && (
             <div className="relative z-20 shrink-0 px-4 py-2.5 flex items-start gap-3 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800/50">
               <div className="mt-0.5 w-4 h-4 shrink-0 rounded-full bg-blue-500 flex items-center justify-center">
                 <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1v3M4 6h.01" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
@@ -573,6 +585,14 @@ export default function Messages() {
                   Your message needs approval from <strong>Faculty</strong> before reaching the HOD.
                 </p>
               </div>
+              {/* Dismiss X button */}
+              <button
+                onClick={() => setDismissedApprovalBanner(true)}
+                className="shrink-0 p-1 rounded-full text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-colors"
+                aria-label="Dismiss"
+              >
+                <X size={14} />
+              </button>
             </div>
           )}
 
