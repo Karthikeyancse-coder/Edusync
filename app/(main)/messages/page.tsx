@@ -14,6 +14,7 @@ const initialContacts = [
   { id: 2, name: 'Computer Science 101', role: 'Group', lastMessage: 'Don\'t forget the assignment!', time: 'Yesterday', unread: 0, avatar: 'CS' },
   { id: 3, name: 'Michael Chen', role: 'Student', lastMessage: 'Thanks for the help!', time: 'Tuesday', unread: 0, avatar: 'MC' },
   { id: 4, name: 'Faculty Announcements', role: 'Group', lastMessage: 'Meeting at 3 PM in Room 4B.', time: 'Monday', unread: 5, avatar: 'FA' },
+  { id: 5, name: 'Admin Principal', role: 'Principal', lastMessage: 'Tap to send a message (needs approval)', time: '', unread: 0, avatar: 'AP' },
 ]
 
 const initialMessages = [
@@ -171,6 +172,11 @@ export default function Messages() {
       return
     }
 
+    // Detect if sending to a principal or HOD — needs approval chain
+    const recipientRole = activeContact?.role?.toLowerCase() || ''
+    const needsApproval = recipientRole.includes('principal')
+    const needsHodApproval = recipientRole.includes('principal') // student→principal needs faculty+hod
+
     const newMessage = {
       id: Date.now(),
       senderId: 'me',
@@ -180,7 +186,14 @@ export default function Messages() {
       isAudio: isRecording,
       replyTo: replyingTo,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      isMe: true
+      isMe: true,
+      // Approval chain tracking
+      approvalStatus: needsApproval ? 'pending_faculty' : null,
+      approvalSteps: needsApproval ? [
+        { label: 'Faculty', status: 'pending' },
+        { label: 'HOD', status: 'pending' },
+        { label: 'Principal', status: 'pending' },
+      ] : null,
     }
 
     setChatMessages([...chatMessages, newMessage])
@@ -523,6 +536,46 @@ export default function Messages() {
             </div>
           </div>
 
+          {/* Approval Chain Info Banner */}
+          {activeContact?.role?.toLowerCase() === 'principal' && (
+            <div className="relative z-20 shrink-0 px-4 py-2.5 flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800/50">
+              <div className="mt-0.5 w-4 h-4 shrink-0 rounded-full bg-amber-500 flex items-center justify-center">
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1v3M4 6h.01" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">2-Step Approval Required</p>
+                <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-0.5">
+                  Your message needs approval from <strong>Faculty</strong> then <strong>HOD</strong> before reaching the Principal.
+                </p>
+                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                  {['You', 'Faculty', 'HOD', 'Principal'].map((step, i) => (
+                    <div key={step} className="flex items-center gap-1">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        step === 'You' ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300' :
+                        step === 'Principal' ? 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300' :
+                        'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300'
+                      }`}>{step}</span>
+                      {i < 3 && <span className="text-amber-400 text-xs font-bold">{'>'}</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          {activeContact?.role?.toLowerCase() === 'hod' && (
+            <div className="relative z-20 shrink-0 px-4 py-2.5 flex items-start gap-3 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800/50">
+              <div className="mt-0.5 w-4 h-4 shrink-0 rounded-full bg-blue-500 flex items-center justify-center">
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1v3M4 6h.01" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-blue-800 dark:text-blue-300">1-Step Approval Required</p>
+                <p className="text-[11px] text-blue-700 dark:text-blue-400 mt-0.5">
+                  Your message needs approval from <strong>Faculty</strong> before reaching the HOD.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Pinned Message */}
           <AnimatePresence>
             {pinnedMessage && (
@@ -622,6 +675,55 @@ export default function Messages() {
                     <span>{msg.time}</span>
                     {msg.isMe && <CheckCheck size={16} className="text-indigo-200" />}
                   </div>
+                  {/* Approval Chain Tracker */}
+                  {msg.isMe && msg.approvalSteps && (
+                    <div className="mt-3 pt-3 border-t border-white/20">
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-indigo-200 mb-2">
+                        Approval Required
+                      </p>
+                      <div className="flex items-center gap-1">
+                        {msg.approvalSteps.map((step: any, i: number) => (
+                          <React.Fragment key={step.label}>
+                            <div className="flex flex-col items-center gap-1">
+                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                step.status === 'approved'
+                                  ? 'bg-green-400 border-green-300'
+                                  : step.status === 'rejected'
+                                  ? 'bg-red-400 border-red-300'
+                                  : 'bg-white/20 border-white/40'
+                              }`}>
+                                {step.status === 'approved' && (
+                                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                                    <path d="M2 5l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                                  </svg>
+                                )}
+                                {step.status === 'rejected' && (
+                                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                                    <path d="M2 2l4 4M6 2l-4 4" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                                  </svg>
+                                )}
+                              </div>
+                              <span className="text-[9px] text-indigo-200 font-medium whitespace-nowrap">{step.label}</span>
+                            </div>
+                            {i < msg.approvalSteps.length - 1 && (
+                              <div className={`flex-1 h-0.5 mb-3 mx-0.5 rounded ${
+                                step.status === 'approved' ? 'bg-green-400' : 'bg-white/20'
+                              }`} />
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                      <p className="text-[10px] text-indigo-200 mt-1.5">
+                        {msg.approvalSteps.every((s: any) => s.status === 'approved')
+                          ? '✓ Delivered to Principal'
+                          : msg.approvalSteps.find((s: any) => s.status === 'rejected')
+                          ? '✗ Rejected'
+                          : `Waiting for ${msg.approvalSteps.find((s: any) => s.status === 'pending')?.label} approval`
+                        }
+                      </p>
+                    </div>
+                  )}
+
                 </div>
               </motion.div>
               ))}

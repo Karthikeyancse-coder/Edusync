@@ -16,6 +16,7 @@ const initialAnnouncements = [
     title: 'Urgent: Campus Closure Due to Weather',
     author: 'Admin Principal',
     role: 'principal',
+    department: null, // null = college-wide (principal only)
     date: 'Today, 8:00 AM',
     content: 'Due to severe weather conditions, the campus will be closed for all non-essential personnel today. All classes will be moved online. Please check your course pages for specific instructions from your professors.',
     type: 'urgent',
@@ -26,6 +27,7 @@ const initialAnnouncements = [
     title: 'Fall Semester Registration Opening Soon',
     author: 'Registrar Office',
     role: 'hod',
+    department: 'Computer Science',
     date: 'Yesterday, 2:30 PM',
     content: 'Registration for the upcoming Fall semester will open next Monday at 8:00 AM. Please ensure you have met with your academic advisor and cleared any holds on your account before attempting to register.',
     type: 'academic',
@@ -36,6 +38,7 @@ const initialAnnouncements = [
     title: 'Annual Science Fair - Call for Participants',
     author: 'Dr. Marie Curie',
     role: 'hod',
+    department: 'Physics',
     date: 'Oct 12, 10:15 AM',
     content: 'The Physics and Chemistry departments are proud to announce the Annual Science Fair. We are currently looking for student volunteers and project submissions. The deadline for registration is the end of this month.',
     type: 'event',
@@ -45,7 +48,8 @@ const initialAnnouncements = [
     id: 4,
     title: 'New Library Hours for Finals Week',
     author: 'Library Services',
-    role: 'faculty',
+    role: 'hod',
+    department: 'Administration',
     date: 'Oct 10, 9:00 AM',
     content: 'To support students during finals week, the main library will be open 24/7 starting next Sunday. Coffee and snacks will be provided in the lobby during late night hours (10 PM - 2 AM).',
     type: 'info',
@@ -67,10 +71,23 @@ const itemVariants: Variants = {
 }
 
 export default function Announcements() {
-  const { role } = useAuth()
+  const { role, department } = useAuth()
   const canPost = role === 'principal' || role === 'hod'
   const [announcementsData, setAnnouncementsData] = React.useState(initialAnnouncements)
   const [expandedIds, setExpandedIds] = React.useState<Set<number>>(new Set())
+
+  // Filter: principal sees all; everyone else sees principal posts (dept=null)
+  // + HOD posts only if dept matches their own dept
+  const visibleAnnouncements = React.useMemo(() => {
+    return announcementsData.filter(a => {
+      // Principal posts (dept=null) are visible to everyone
+      if (!a.department) return true
+      // Principal user sees everything
+      if (role === 'principal') return true
+      // HOD/Faculty/Student sees only their dept's announcements
+      return a.department === department
+    })
+  }, [announcementsData, role, department])
   const [isPostModalOpen, setIsPostModalOpen] = React.useState(false)
   const [newAnnouncement, setNewAnnouncement] = React.useState({
     title: '',
@@ -114,8 +131,10 @@ export default function Announcements() {
       const announcement = {
         id: nextId,
         title: newAnnouncement.title,
-        author: 'Admin Principal',
-        role: 'principal',
+        author: role === 'principal' ? 'Admin Principal' : `HOD — ${department}`,
+        role: role as string,
+        // HOD posts are dept-scoped; Principal posts are college-wide (null)
+        department: role === 'hod' ? department : null,
         date: 'Just now',
         content: newAnnouncement.content,
         type: newAnnouncement.type,
@@ -253,7 +272,7 @@ export default function Announcements() {
         {/* Vertical Line for timeline effect (Desktop) */}
         <div className="hidden md:block absolute left-8 top-8 bottom-8 w-px bg-slate-200 dark:bg-slate-800" />
 
-        {announcementsData.map((announcement) => {
+        {visibleAnnouncements.map((announcement) => {
           const isUrgent = announcement.type === 'urgent'
           const Icon = isUrgent ? AlertCircle : announcement.type === 'event' ? Calendar : FileText
           const isExpanded = expandedIds.has(announcement.id)
@@ -285,13 +304,23 @@ export default function Announcements() {
                       
                       {/* Content */}
                       <div>
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center flex-wrap gap-2 mb-1">
                           <span className="text-sm font-semibold text-slate-900 dark:text-white">
                             {announcement.author}
                           </span>
                           <span className="text-xs text-slate-500 dark:text-slate-400">
                             • {announcement.date}
                           </span>
+                          {announcement.department && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300">
+                              {announcement.department}
+                            </span>
+                          )}
+                          {!announcement.department && announcement.role === 'principal' && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-300">
+                              College-wide
+                            </span>
+                          )}
                         </div>
                         
                         <div className="flex items-center gap-2 mb-3">
