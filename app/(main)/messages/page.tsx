@@ -1155,104 +1155,125 @@ export default function Messages() {
           <>
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[110] bg-black/30 backdrop-blur-sm"
+              className="fixed inset-0 z-[110] bg-slate-900/40 backdrop-blur-sm"
               onClick={() => setShowContactInfo(false)}
             />
             <motion.div
               initial={{ x: '100%', opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: '100%', opacity: 0 }}
               transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-              className="fixed right-0 top-0 h-full w-full max-w-sm z-[120] bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden"
+              className="fixed right-0 top-0 h-full w-full max-w-[420px] z-[120] bg-slate-50 dark:bg-slate-950 shadow-2xl flex flex-col overflow-hidden"
             >
-              {/* Header */}
-              <div className="relative bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 pt-12 pb-8 px-6 flex flex-col items-center text-center">
+              {/* Header Profile Card */}
+              <div className="relative pt-6 pb-6 px-6 bg-white dark:bg-slate-900 shadow-sm z-10 flex flex-col items-center border-b border-slate-100 dark:border-slate-800">
                 <button
                   onClick={() => setShowContactInfo(false)}
-                  className="absolute top-4 right-4 w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white transition-colors"
+                  className="absolute top-4 right-4 w-8 h-8 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-full flex items-center justify-center text-slate-500 transition-colors"
                 >
                   <X size={16} />
                 </button>
-                <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white font-bold text-3xl shadow-lg mb-3">
-                  {activeContact.avatar}
+                
+                <div className="relative mb-4 mt-4">
+                  <div className="absolute inset-0 bg-indigo-500 blur-xl opacity-30 rounded-full"></div>
+                  <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold text-4xl shadow-xl relative z-10 transform rotate-3 hover:rotate-0 transition-transform">
+                    {activeContact.avatar}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 z-20"></div>
                 </div>
-                <h2 className="text-white font-bold text-xl mb-0.5">{activeContact.name}</h2>
-                <span className="text-white/70 text-xs font-semibold uppercase tracking-widest">{activeContact.role}</span>
-                <div className="flex gap-3 mt-4">
-                  <button className="flex flex-col items-center gap-1.5 bg-white/15 hover:bg-white/25 px-4 py-2.5 rounded-xl transition-colors text-white text-xs font-semibold">
-                    <Phone size={18} /><span>Call</span>
-                  </button>
-                  <button className="flex flex-col items-center gap-1.5 bg-white/15 hover:bg-white/25 px-4 py-2.5 rounded-xl transition-colors text-white text-xs font-semibold">
-                    <Video size={18} /><span>Video</span>
-                  </button>
-                  <button className="flex flex-col items-center gap-1.5 bg-white/15 hover:bg-white/25 px-4 py-2.5 rounded-xl transition-colors text-white text-xs font-semibold">
-                    <Search size={18} /><span>Search</span>
-                  </button>
+                
+                <h2 className="text-slate-900 dark:text-white font-bold text-2xl mb-1">{activeContact.name}</h2>
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
+                  <span className="text-indigo-600 dark:text-indigo-400 uppercase tracking-wider text-[11px] font-bold">{activeContact.role}</span>
+                  <span>•</span>
+                  <span>Online</span>
+                </div>
+
+                <div className="flex justify-center gap-4 mt-6 w-full">
+                  {[
+                    { icon: Phone, label: 'Audio' },
+                    { icon: Video, label: 'Video' },
+                    { icon: Search, label: 'Search' },
+                  ].map((btn) => (
+                    <button key={btn.label} className="flex flex-col items-center gap-2 group">
+                      <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
+                        <btn.icon size={20} />
+                      </div>
+                      <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">{btn.label}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Scrollable Body */}
-              <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+              {/* Scrollable Body - Card Layout */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
 
-                {/* About */}
-                <div className="px-5 py-4">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">About</p>
-                  <p className="text-sm text-slate-600 dark:text-slate-300 italic">
-                    "Learning is a lifelong journey." · {activeContact.role}
-                  </p>
-                  <p className="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
-                    Online
+                {/* About Card */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-800">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">About</p>
+                  <p className="text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
+                    "Learning is a lifelong journey."
                   </p>
                 </div>
 
-                {/* Media, links and docs */}
-                <div className="px-5 py-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                      <Image size={16} className="text-indigo-400" /> Media, links and docs
+                {/* Media Card */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
+                      <Image size={18} className="text-indigo-500" /> Media, links and docs
                     </div>
-                    <span className="text-xs font-bold text-slate-400">12</span>
+                    <span className="text-xs font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-md">12</span>
                   </div>
-                  {/* Thumbnail strip */}
-                  <div className="flex gap-2 overflow-x-auto pb-1">
-                    {['bg-indigo-200', 'bg-violet-200', 'bg-rose-200', 'bg-amber-200'].map((c, i) => (
-                      <div key={i} className={`w-16 h-16 shrink-0 rounded-xl ${c} dark:opacity-60 flex items-center justify-center`}>
-                        {i < 2 ? <Image size={22} className="text-white/60" /> : <FileText size={22} className="text-white/60" />}
+                  <div className="grid grid-cols-4 gap-2 mb-3">
+                    {['bg-blue-100 text-blue-500', 'bg-violet-100 text-violet-500', 'bg-rose-100 text-rose-500', 'bg-amber-100 text-amber-500'].map((c, i) => (
+                      <div key={i} className={`aspect-square rounded-xl ${c} dark:opacity-80 flex items-center justify-center`}>
+                        {i < 2 ? <Image size={24} /> : <FileText size={24} />}
                       </div>
                     ))}
                   </div>
-                  <button className="mt-3 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">View all media →</button>
+                  <button className="w-full py-2.5 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 transition-colors">
+                    View All Media
+                  </button>
                 </div>
 
-                {/* Settings rows */}
-                {[
-                  { icon: Star,  label: 'Starred messages',       sub: '3 starred',   action: () => {} },
-                  { icon: Bell,  label: 'Notification settings',  sub: mutedContacts.includes(activeContact.id) ? 'Muted' : 'On', action: () => { setMutedContacts(p => p.includes(activeContact.id) ? p.filter(x => x !== activeContact.id) : [...p, activeContact.id]) } },
-                  { icon: Clock, label: 'Disappearing messages',  sub: 'Off',         action: () => {} },
-                  { icon: Lock,  label: 'Encryption',             sub: 'End-to-end encrypted · Tap to verify', action: () => {} },
-                ].map(({ icon: Icon, label, sub, action }) => (
-                  <button key={label} onClick={action} className="w-full flex items-center gap-4 px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left">
-                    <Icon size={18} className="text-slate-400 shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{label}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
-                    </div>
-                    <ChevronRight size={14} className="text-slate-300 dark:text-slate-600 shrink-0" />
-                  </button>
-                ))}
+                {/* Settings Card */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+                  {[
+                    { icon: Star,  label: 'Starred messages',       sub: '3 messages',   action: () => {} },
+                    { icon: Bell,  label: 'Mute Notifications',  sub: mutedContacts.includes(activeContact.id) ? 'Muted' : 'Off', action: () => { setMutedContacts(p => p.includes(activeContact.id) ? p.filter(x => x !== activeContact.id) : [...p, activeContact.id]) }, toggle: true },
+                    { icon: Clock, label: 'Disappearing messages',  sub: 'Off',         action: () => {} },
+                    { icon: ShieldIcon,  label: 'Encryption',             sub: 'Messages are end-to-end encrypted.', action: () => {} },
+                  ].map(({ icon: Icon, label, sub, action, toggle }, i) => (
+                    <button key={label} onClick={action} className={`w-full flex items-center gap-4 px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left ${i !== 0 ? 'border-t border-slate-50 dark:border-slate-800/50' : ''}`}>
+                      <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 shrink-0">
+                        <Icon size={18} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">{label}</p>
+                        <p className="text-xs text-slate-500 mt-0.5 truncate">{sub}</p>
+                      </div>
+                      {toggle ? (
+                        <div className={`w-10 h-6 rounded-full p-1 transition-colors ${mutedContacts.includes(activeContact.id) ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                          <div className={`w-4 h-4 rounded-full bg-white transition-transform ${mutedContacts.includes(activeContact.id) ? 'translate-x-4' : 'translate-x-0'}`} />
+                        </div>
+                      ) : (
+                        <ChevronRight size={16} className="text-slate-300 dark:text-slate-600 shrink-0" />
+                      )}
+                    </button>
+                  ))}
+                </div>
 
-                {/* Danger zone */}
-                <div className="px-5 py-4 space-y-1">
+                {/* Danger Card */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-red-100 dark:border-red-900/30 overflow-hidden mb-4">
                   <button
                     onClick={() => { if (activeContact) { setClearedAt(prev => ({ ...prev, [activeContact.id]: Date.now() })); setShowContactInfo(false) } }}
-                    className="w-full flex items-center gap-3 px-1 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                    className="w-full flex items-center gap-3 px-5 py-4 text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors border-b border-red-50 dark:border-red-900/20"
                   >
-                    <MinusCircle size={18} /> Clear chat
+                    <MinusCircle size={18} /> Clear Chat History
                   </button>
                   <button
                     onClick={() => { if (activeContact) { handleDeleteContact(activeContact.id); setShowContactInfo(false) } }}
-                    className="w-full flex items-center gap-3 px-1 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                    className="w-full flex items-center gap-3 px-5 py-4 text-sm font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
                   >
-                    <Trash2 size={18} /> Delete chat
+                    <Trash2 size={18} /> Delete Chat
                   </button>
                 </div>
               </div>
@@ -1261,75 +1282,125 @@ export default function Messages() {
         )}
       </AnimatePresence>
 
-      {/* Group Info Panel - Slide in from right */}
-
+      {/* ══════════ GROUP INFO PANEL ══════════ */}
       <AnimatePresence>
         {showGroupInfo && activeContact?.role === 'Group' && (
           <>
-            {/* Backdrop */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[110] bg-black/30 backdrop-blur-sm"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[110] bg-slate-900/40 backdrop-blur-sm"
               onClick={() => setShowGroupInfo(false)}
             />
-            {/* Panel */}
             <motion.div
-              initial={{ x: '100%', opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: '100%', opacity: 0 }}
+              initial={{ x: '100%', opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: '100%', opacity: 0 }}
               transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-              className="fixed right-0 top-0 h-full w-full max-w-sm z-[120] bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden"
+              className="fixed right-0 top-0 h-full w-full max-w-[420px] z-[120] bg-slate-50 dark:bg-slate-950 shadow-2xl flex flex-col overflow-hidden"
             >
-              {/* Panel Header */}
-              <div className="relative bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 pt-12 pb-8 px-6 flex flex-col items-center text-center">
+              {/* Header Profile Card */}
+              <div className="relative pt-6 pb-6 px-6 bg-white dark:bg-slate-900 shadow-sm z-10 flex flex-col items-center border-b border-slate-100 dark:border-slate-800">
                 <button
                   onClick={() => setShowGroupInfo(false)}
-                  className="absolute top-4 right-4 w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white transition-colors"
+                  className="absolute top-4 right-4 w-8 h-8 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-full flex items-center justify-center text-slate-500 transition-colors"
                 >
                   <X size={16} />
                 </button>
-                {/* Group Avatar */}
-                <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white font-bold text-3xl shadow-lg mb-3">
-                  {activeContact.avatar}
+                
+                <div className="relative mb-4 mt-4">
+                  <div className="absolute inset-0 bg-emerald-500 blur-xl opacity-30 rounded-[2rem]"></div>
+                  <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold text-4xl shadow-xl relative z-10 transform -rotate-3 hover:rotate-0 transition-transform">
+                    {activeContact.avatar}
+                  </div>
                 </div>
-                <h2 className="text-white font-bold text-xl mb-1">{activeContact.name}</h2>
-                <span className="text-white/70 text-xs font-semibold uppercase tracking-widest">Group</span>
-              </div>
+                
+                <h2 className="text-slate-900 dark:text-white font-bold text-2xl mb-1 text-center leading-tight">{activeContact.name}</h2>
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
+                  <span className="text-emerald-600 dark:text-emerald-400 uppercase tracking-wider text-[11px] font-bold">Group</span>
+                  <span>•</span>
+                  <span>124 Members</span>
+                </div>
 
-              {/* Scrollable Body */}
-              <div className="flex-1 overflow-y-auto">
-                {/* Quick Stats */}
-                <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-slate-800 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex justify-center gap-4 mt-6 w-full">
                   {[
-                    { icon: Users, label: 'Members', value: '124' },
-                    { icon: Calendar, label: 'Created', value: 'Jan 2024' },
-                    { icon: BookOpen, label: 'Category', value: 'Subject' },
-                  ].map(({ icon: Icon, label, value }) => (
-                    <div key={label} className="flex flex-col items-center py-4 gap-1">
-                      <Icon size={18} className="text-indigo-500" />
-                      <p className="text-sm font-bold text-slate-900 dark:text-white">{value}</p>
-                      <p className="text-[10px] text-slate-500">{label}</p>
-                    </div>
+                    { icon: Phone, label: 'Audio' },
+                    { icon: Video, label: 'Video' },
+                    { icon: Search, label: 'Search' },
+                  ].map((btn) => (
+                    <button key={btn.label} className="flex flex-col items-center gap-2 group">
+                      <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
+                        <btn.icon size={20} />
+                      </div>
+                      <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">{btn.label}</span>
+                    </button>
                   ))}
                 </div>
+              </div>
 
-                {/* Description */}
-                <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                    <Info size={12} /> Description
-                  </h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              {/* Scrollable Body - Card Layout */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                
+                {/* Description Card */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-800">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Description</p>
+                  <p className="text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
                     This group is for all students and faculty involved in Advanced Mathematics. Use this space for announcements, doubt clearing, and assignment updates.
                   </p>
                 </div>
 
-                {/* Members */}
-                <div className="px-5 py-4">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                    <Users size={12} /> Members (124)
-                  </h3>
+                {/* Media Card */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
+                      <Image size={18} className="text-emerald-500" /> Group Media & Docs
+                    </div>
+                    <span className="text-xs font-bold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded-md">45</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2 mb-3">
+                    {['bg-blue-100 text-blue-500', 'bg-violet-100 text-violet-500', 'bg-rose-100 text-rose-500', 'bg-amber-100 text-amber-500'].map((c, i) => (
+                      <div key={i} className={`aspect-square rounded-xl ${c} dark:opacity-80 flex items-center justify-center`}>
+                        {i < 2 ? <Image size={24} /> : <FileText size={24} />}
+                      </div>
+                    ))}
+                  </div>
+                  <button className="w-full py-2.5 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 transition-colors">
+                    View All Media
+                  </button>
+                </div>
+
+                {/* Settings Card */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+                  {[
+                    { icon: Bell,  label: 'Mute Notifications',  sub: mutedContacts.includes(activeContact.id) ? 'Muted' : 'Off', action: () => { setMutedContacts(p => p.includes(activeContact.id) ? p.filter(x => x !== activeContact.id) : [...p, activeContact.id]) }, toggle: true },
+                    { icon: ShieldIcon,  label: 'Encryption',             sub: 'Messages are end-to-end encrypted.', action: () => {} },
+                  ].map(({ icon: Icon, label, sub, action, toggle }, i) => (
+                    <button key={label} onClick={action} className={`w-full flex items-center gap-4 px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left ${i !== 0 ? 'border-t border-slate-50 dark:border-slate-800/50' : ''}`}>
+                      <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 shrink-0">
+                        <Icon size={18} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">{label}</p>
+                        <p className="text-xs text-slate-500 mt-0.5 truncate">{sub}</p>
+                      </div>
+                      {toggle ? (
+                        <div className={`w-10 h-6 rounded-full p-1 transition-colors ${mutedContacts.includes(activeContact.id) ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                          <div className={`w-4 h-4 rounded-full bg-white transition-transform ${mutedContacts.includes(activeContact.id) ? 'translate-x-4' : 'translate-x-0'}`} />
+                        </div>
+                      ) : (
+                        <ChevronRight size={16} className="text-slate-300 dark:text-slate-600 shrink-0" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Members Card */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl p-2 shadow-sm border border-slate-100 dark:border-slate-800 mb-4">
+                  <div className="px-3 py-3 flex items-center justify-between">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <Users size={14} /> 124 Members
+                    </h3>
+                    <button className="text-emerald-600 dark:text-emerald-400 p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors">
+                      <Search size={16} />
+                    </button>
+                  </div>
                   <div className="space-y-1">
                     {[
                       { name: 'Dr. Sarah Jenkins', id: 'FAC-CSE-001', role: 'faculty', label: 'Admin', icon: Crown },
@@ -1337,8 +1408,6 @@ export default function Messages() {
                       { name: 'Aarav Shah', id: 'STU-CSE-2024-001', role: 'student', label: 'Student', icon: GraduationCap },
                       { name: 'Priya Nair', id: 'STU-CSE-2024-002', role: 'student', label: 'Student', icon: GraduationCap },
                       { name: 'Rohan Verma', id: 'STU-CSE-2024-003', role: 'student', label: 'Student', icon: GraduationCap },
-                      { name: 'Kavya Reddy', id: 'STU-CSE-2024-004', role: 'student', label: 'Student', icon: GraduationCap },
-                      { name: 'Arjun Mehta', id: 'STU-ECE-2024-001', role: 'student', label: 'Student', icon: GraduationCap },
                     ].map((member) => {
                       const roleColors: Record<string, string> = {
                         faculty: 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300',
@@ -1346,35 +1415,36 @@ export default function Messages() {
                         student: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
                       }
                       return (
-                        <div key={member.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${roleColors[member.role]}`}>
+                        <div key={member.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${roleColors[member.role]}`}>
                             {member.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{member.name}</p>
+                            <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{member.name}</p>
                             <p className="text-xs text-slate-400 font-mono">{member.id}</p>
                           </div>
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 pr-2">
                             {member.label === 'Admin' && <Crown size={13} className="text-amber-500" />}
-                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${roleColors[member.role]}`}>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${roleColors[member.role]}`}>
                               {member.label}
                             </span>
                           </div>
                         </div>
                       )
                     })}
-                    <button className="w-full mt-2 text-sm text-indigo-600 dark:text-indigo-400 font-semibold py-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-colors">
-                      View all 124 members →
+                    <button className="w-full mt-1 py-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-xl transition-colors">
+                      View All 124 Members
                     </button>
                   </div>
                 </div>
 
-                {/* Danger Zone */}
-                <div className="px-5 pb-8 pt-2 border-t border-slate-100 dark:border-slate-800">
-                  <button className="w-full py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors">
-                    Leave Group
+                {/* Danger Card */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-red-100 dark:border-red-900/30 overflow-hidden mb-4">
+                  <button className="w-full flex items-center gap-3 px-5 py-4 text-sm font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
+                    <MinusCircle size={18} /> Leave Group
                   </button>
                 </div>
+
               </div>
             </motion.div>
           </>
