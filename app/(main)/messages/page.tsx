@@ -1504,38 +1504,17 @@ export default function Messages() {
                 <X size={20} />
               </button>
               
-              <div className="relative w-32 h-32 mb-6 flex items-center justify-center">
-                {/* Spinning Gear Background */}
-                <motion.div 
-                  animate={{ rotate: 360 }}
-                  transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
-                  className="absolute inset-0 text-indigo-100 dark:text-indigo-900/40 flex items-center justify-center"
-                >
-                  <Settings size={120} strokeWidth={1} />
-                </motion.div>
-                
-                {/* Foreground Icon (Bouncing slightly) */}
-                <motion.div
-                  animate={{ y: [0, -6, 0] }}
-                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                  className="relative z-10 w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-indigo-50 dark:border-slate-700 flex items-center justify-center text-indigo-600 dark:text-indigo-400"
-                >
-                  {callingState.type === 'video' ? <Video size={32} /> : <Phone size={32} />}
-                </motion.div>
-                
-                {/* Small floating tools */}
-                <motion.div
-                  animate={{ rotate: [-15, 15, -15], x: [0, 6, 0], y: [0, -4, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                  className="absolute bottom-2 right-2 bg-indigo-600 text-white p-2 rounded-full shadow-lg z-20 border-2 border-white dark:border-slate-900"
-                >
-                  <Wrench size={16} />
-                </motion.div>
+              <div className="relative w-48 h-36 mb-6 rounded-2xl overflow-hidden shadow-inner border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+                <img 
+                  src="https://media.tenor.com/GfSXy98D7U8AAAAC/pikachu-confused.gif" 
+                  alt="Confused Pikachu"
+                  className="w-full h-full object-cover"
+                />
               </div>
               
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">Feature in Development</h3>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">404 - Not Ready Yet</h3>
               <p className="text-slate-500 dark:text-slate-400 leading-relaxed mb-8 text-sm">
-                We are actively working on bringing high-quality {callingState.type === 'video' ? 'video' : 'audio'} calls to EduSync. Please check back later!
+                Oops! Pikachu got lost trying to find the {callingState.type === 'video' ? 'video' : 'audio'} call feature. We're still actively building it!
               </p>
               
               <button onClick={() => setCallingState(null)} className="w-full py-3.5 bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-md">
