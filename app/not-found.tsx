@@ -24,15 +24,14 @@ export default function NotFound() {
           transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.1 }}
           className="relative mb-6 flex flex-col items-center"
         >
-          <div className="w-48 h-48 mb-2 rounded-2xl overflow-hidden shadow-inner border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+          <div className="w-56 h-56 mb-2 rounded-3xl overflow-hidden shadow-lg border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-center">
             <img 
-              src="/pikachu.gif" 
+              src="/pikachu-404.png" 
               alt="Lost Pikachu"
-              className="w-32 h-32 object-contain rendering-pixelated drop-shadow-md"
-              style={{ imageRendering: 'pixelated' }}
+              className="w-full h-full object-cover"
             />
           </div>
-          <div className="text-[80px] font-black leading-none tracking-tighter">
+          <div className="text-[80px] font-black leading-none tracking-tighter mt-4">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">4</span>
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-violet-400">0</span>
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">4</span>
