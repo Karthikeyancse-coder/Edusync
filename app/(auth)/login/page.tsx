@@ -174,7 +174,7 @@ export default function LoginPage() {
                 type="button" 
                 variant="secondary" 
                 className="w-full flex items-center justify-center gap-2 bg-surface2/50 border-default hover:bg-surface2 text-primary-color"
-                onClick={() => loginWithOAuth('google')}
+                onClick={() => router.push('/coming-soon')}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="18" height="18">
                   <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -188,7 +188,7 @@ export default function LoginPage() {
                 type="button" 
                 variant="secondary" 
                 className="w-full flex items-center justify-center gap-2 bg-surface2/50 border-default hover:bg-surface2 text-primary-color"
-                onClick={() => loginWithOAuth('azure')}
+                onClick={() => router.push('/coming-soon')}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 21 21" width="18" height="18">
                   <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
