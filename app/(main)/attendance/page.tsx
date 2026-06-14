@@ -14,12 +14,14 @@ import { cn } from '@/lib/utils'
 const CLASSES = ['CSE-A', 'CSE-B', 'ECE-A', 'MECH-B']
 const SUBJECTS = ['Data Structures', 'Algorithms', 'Operating Systems', 'Computer Networks']
 
+type AttendanceStatus = 'present' | 'absent' | 'od' | null
+
 type StudentRecord = {
   id: string
   name: string
   roll: string
   overall: number
-  present: boolean | null
+  present: AttendanceStatus
 }
 
 const generateStudents = (): StudentRecord[] =>
@@ -90,12 +92,18 @@ export default function AttendancePage() {
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.roll.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const markAll = (status: boolean) => {
+  const markAll = (status: AttendanceStatus) => {
     setStudents(prev => prev.map(s => ({ ...s, present: status })))
   }
 
   const toggle = (id: string) => {
-    setStudents(prev => prev.map(s => s.id === id ? { ...s, present: !s.present } : s))
+    setStudents(prev => prev.map(s => {
+      if (s.id !== id) return s;
+      if (s.present === null) return { ...s, present: 'present' }
+      if (s.present === 'present') return { ...s, present: 'absent' }
+      if (s.present === 'absent') return { ...s, present: 'od' }
+      return { ...s, present: null }
+    }))
   }
 
   const handleSave = () => {
@@ -103,8 +111,9 @@ export default function AttendancePage() {
     setTimeout(() => setSaved(false), 2000)
   }
 
-  const presentCount = students.filter(s => s.present === true).length
-  const absentCount = students.filter(s => s.present === false).length
+  const presentCount = students.filter(s => s.present === 'present').length
+  const absentCount = students.filter(s => s.present === 'absent').length
+  const odCount = students.filter(s => s.present === 'od').length
   const unmarkedCount = students.filter(s => s.present === null).length
 
   return (
@@ -232,10 +241,11 @@ export default function AttendancePage() {
           </Card>
 
           {/* Stats row */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
               { label: 'Present', count: presentCount, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-900/30' },
               { label: 'Absent', count: absentCount, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-900/30' },
+              { label: 'On Duty', count: odCount, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-900/30' },
               { label: 'Unmarked', count: unmarkedCount, color: 'text-slate-600', bg: 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700' },
             ].map(stat => (
               <Card key={stat.label} className={cn("border", stat.bg)}>
@@ -249,11 +259,17 @@ export default function AttendancePage() {
 
           {/* Mark All Buttons */}
           <div className="flex gap-3 flex-wrap">
-            <Button variant="outline" onClick={() => markAll(true)} className="gap-2 text-emerald-600 border-emerald-300 hover:bg-emerald-50">
+            <Button variant="outline" onClick={() => markAll('present')} className="gap-2 text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20">
               <CheckSquare size={16} /> Mark All Present
             </Button>
-            <Button variant="outline" onClick={() => markAll(false)} className="gap-2 text-red-600 border-red-300 hover:bg-red-50">
+            <Button variant="outline" onClick={() => markAll('absent')} className="gap-2 text-red-600 border-red-300 hover:bg-red-50 dark:hover:bg-red-900/20">
               <X size={16} /> Mark All Absent
+            </Button>
+            <Button variant="outline" onClick={() => markAll('od')} className="gap-2 text-blue-600 border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+              <CheckSquare size={16} /> Mark All OD
+            </Button>
+            <Button variant="outline" onClick={() => markAll(null)} className="gap-2 text-slate-600 border-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
+              <X size={16} /> Clear All
             </Button>
             <Button onClick={handleSave} className="gap-2 ml-auto bg-indigo-600 hover:bg-indigo-700 text-white">
               {saved ? '✓ Saved!' : <><Save size={16} /> Save Attendance</>}
@@ -264,24 +280,27 @@ export default function AttendancePage() {
           <Card>
             <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
               {filteredStudents.map(student => (
-                <div
+                  <div
                   key={student.id}
                   onClick={() => toggle(student.id)}
                   className={cn(
                     "flex items-center gap-4 p-4 cursor-pointer transition-colors",
-                    student.present === true ? "bg-emerald-50/70 dark:bg-emerald-500/5 hover:bg-emerald-100/70 dark:hover:bg-emerald-500/10" :
-                    student.present === false ? "bg-red-50/70 dark:bg-red-500/5 hover:bg-red-100/70 dark:hover:bg-red-500/10" :
+                    student.present === 'present' ? "bg-emerald-50/70 dark:bg-emerald-500/5 hover:bg-emerald-100/70 dark:hover:bg-emerald-500/10" :
+                    student.present === 'absent' ? "bg-red-50/70 dark:bg-red-500/5 hover:bg-red-100/70 dark:hover:bg-red-500/10" :
+                    student.present === 'od' ? "bg-blue-50/70 dark:bg-blue-500/5 hover:bg-blue-100/70 dark:hover:bg-blue-500/10" :
                     "hover:bg-slate-50 dark:hover:bg-slate-800/50"
                   )}
                 >
                   <div className={cn(
                     "w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
-                    student.present === true ? "bg-emerald-500 border-emerald-500 text-white" :
-                    student.present === false ? "bg-red-500 border-red-500 text-white" :
+                    student.present === 'present' ? "bg-emerald-500 border-emerald-500 text-white" :
+                    student.present === 'absent' ? "bg-red-500 border-red-500 text-white" :
+                    student.present === 'od' ? "bg-blue-500 border-blue-500 text-white" :
                     "border-slate-300 dark:border-slate-600"
                   )}>
-                    {student.present === true && <CheckSquare size={14} />}
-                    {student.present === false && <X size={14} />}
+                    {student.present === 'present' && <CheckSquare size={14} />}
+                    {student.present === 'absent' && <X size={14} />}
+                    {student.present === 'od' && <span className="text-[10px] font-bold">OD</span>}
                   </div>
                   <Avatar name={student.name} size="sm" />
                   <div className="flex-1 min-w-0">
