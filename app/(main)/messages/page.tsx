@@ -1504,11 +1504,12 @@ export default function Messages() {
                 <X size={20} />
               </button>
               
-              <div className="relative w-48 h-36 mb-6 rounded-2xl overflow-hidden shadow-inner border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+              <div className="relative w-32 h-32 mb-6 rounded-2xl overflow-hidden shadow-inner border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
                 <img 
-                  src="https://media.tenor.com/GfSXy98D7U8AAAAC/pikachu-confused.gif" 
+                  src="/pikachu.gif" 
                   alt="Confused Pikachu"
-                  className="w-full h-full object-cover"
+                  className="w-24 h-24 object-contain rendering-pixelated drop-shadow-md"
+                  style={{ imageRendering: 'pixelated' }}
                 />
               </div>
               
