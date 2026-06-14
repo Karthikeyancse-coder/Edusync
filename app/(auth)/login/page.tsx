@@ -73,8 +73,8 @@ export default function LoginPage() {
         {/* Left Side: Login Form */}
         <div className="flex-1 p-8 md:p-12 flex flex-col justify-center max-w-[420px] w-full mx-auto">
           <motion.div
-            animate={error ? { x: [0, -10, 10, -10, 10, 0] } : {}}
-            transition={{ duration: 0.4 }}
+            animate={error ? { x: [0, -6, 6, -3, 3, 0] } : {}}
+            transition={{ duration: 0.6, ease: "easeInOut" }}
           >
             <motion.div
               initial={{ scale: 0.8 }}
