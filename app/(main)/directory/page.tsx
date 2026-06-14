@@ -38,6 +38,12 @@ const itemVariants: Variants = {
 export default function Directory() {
   const router = useRouter()
   const { role } = useAuth()
+
+  // Permission flags
+  const canEdit   = role === 'faculty' || role === 'hod' || role === 'principal'
+  // Delete is disabled for ALL roles per policy
+  const canDelete = false
+
   const [isLoading, setIsLoading] = useState(true)
   const [usersData, setUsersData] = useState(users)
   const [filter, setFilter] = useState('all')
@@ -123,7 +129,7 @@ export default function Directory() {
               className="pl-10 bg-white dark:bg-surface border-slate-200 dark:border-slate-800" 
             />
           </div>
-          {role !== 'student' && (
+          {canEdit && (
             <Button onClick={() => setIsAddUserModalOpen(true)} className="gap-2 shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white">
               <UserPlus size={18} />
               Add User
@@ -633,10 +639,12 @@ export default function Directory() {
                 </div>
               </div>
 
-              <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 flex justify-between">
-                <Button variant="ghost" className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => handleDeleteUser(selectedUser.id)}>
-                  Delete User
-                </Button>
+              <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-3">
+                {canEdit && (
+                  <Button variant="outline" onClick={() => { setEditingUser(selectedUser); setSelectedUser(null) }}>
+                    <Pencil size={15} className="mr-2" /> Edit
+                  </Button>
+                )}
                 <Button variant="outline" onClick={() => setSelectedUser(null)}>
                   Close
                 </Button>
@@ -658,19 +666,7 @@ export default function Directory() {
             style={{ left: contextMenu.x, top: contextMenu.y }}
             onClick={(e) => e.stopPropagation()}
           >
-            <button className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2">
-              <Mail size={16} /> Message
-            </button>
-            <button 
-              className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
-              onClick={() => {
-                const u = usersData.find(u => u.id === contextMenu.id)
-                if (u) setEditingUser(u)
-                setContextMenu(null)
-              }}
-            >
-              <Pencil size={16} /> Edit User
-            </button>
+            {/* View Profile — visible to all */}
             <button 
               className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
               onClick={() => {
@@ -681,15 +677,30 @@ export default function Directory() {
             >
               <User size={16} /> View Profile
             </button>
-            <button 
-              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-2"
+            {/* Message — visible to all */}
+            <button className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
               onClick={() => {
-                handleDeleteUser(contextMenu.id)
+                const u = usersData.find(u => u.id === contextMenu.id)
+                if (u) router.push(`/messages?userId=${u.id}&name=${encodeURIComponent(u.name)}`)
                 setContextMenu(null)
               }}
             >
-              <Trash2 size={16} /> Delete User
+              <Mail size={16} /> Message
             </button>
+            {/* Edit — faculty / HOD / principal only */}
+            {canEdit && (
+              <button 
+                className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                onClick={() => {
+                  const u = usersData.find(u => u.id === contextMenu.id)
+                  if (u) setEditingUser(u)
+                  setContextMenu(null)
+                }}
+              >
+                <Pencil size={16} /> Edit User
+              </button>
+            )}
+            {/* Delete is disabled for all roles — no button rendered */}
           </motion.div>
         )}
       </AnimatePresence>
