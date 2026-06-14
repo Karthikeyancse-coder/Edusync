@@ -475,7 +475,7 @@ export default function Messages() {
           <div className="absolute top-[30%] left-[20%] w-[25rem] h-[25rem] bg-emerald-300/40 dark:bg-emerald-600/10 rounded-full blur-[80px] pointer-events-none" />
           
           {/* Chat Header */}
-          <div className="relative z-20 shrink-0 p-4 md:p-6 flex items-center justify-between border-b border-indigo-100/50 dark:border-slate-800/50 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
+          <div className="relative z-[50] shrink-0 p-4 md:p-6 flex items-center justify-between border-b border-indigo-100/50 dark:border-slate-800/50 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
             <div
                 className="flex items-center gap-3 cursor-pointer select-none"
                 onClick={() => { if (activeContact?.role === 'Group') setShowGroupInfo(true) }}
@@ -542,7 +542,7 @@ export default function Messages() {
 
           {/* Approval Chain Info Banner */}
           {activeContact?.role?.toLowerCase() === 'principal' && !dismissedApprovalBanner && (
-            <div className="relative z-20 shrink-0 px-4 py-2.5 flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800/50">
+            <div className="relative z-10 shrink-0 px-4 py-2.5 flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800/50">
               <div className="mt-0.5 w-4 h-4 shrink-0 rounded-full bg-amber-500 flex items-center justify-center">
                 <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1v3M4 6h.01" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
               </div>
@@ -575,7 +575,7 @@ export default function Messages() {
             </div>
           )}
           {activeContact?.role?.toLowerCase() === 'hod' && !dismissedApprovalBanner && (
-            <div className="relative z-20 shrink-0 px-4 py-2.5 flex items-start gap-3 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800/50">
+            <div className="relative z-10 shrink-0 px-4 py-2.5 flex items-start gap-3 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800/50">
               <div className="mt-0.5 w-4 h-4 shrink-0 rounded-full bg-blue-500 flex items-center justify-center">
                 <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1v3M4 6h.01" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
               </div>
