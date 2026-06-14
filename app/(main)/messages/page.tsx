@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Send, Paperclip, MoreVertical, CheckCheck, Mic, X, ImageIcon, Reply, Forward, Trash2, ChevronDown, Edit2, Copy, User, BellOff, CheckSquare, XCircle, Pin, PinOff, MessageSquare, Archive, MinusCircle, ArrowLeft, Users, Calendar, BookOpen, Crown, Shield, GraduationCap, ChevronRight, Info } from 'lucide-react'
+import { Search, Send, Paperclip, MoreVertical, CheckCheck, Mic, X, ImageIcon, Reply, Forward, Trash2, ChevronDown, Edit2, Copy, User, BellOff, Bell, CheckSquare, XCircle, Pin, PinOff, MessageSquare, Archive, MinusCircle, ArrowLeft, Users, Calendar, BookOpen, Crown, Shield, GraduationCap, ChevronRight, Info, Star, Lock, Clock, Shield as ShieldIcon, Image, FileText, Link2, Phone, Video } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Avatar } from '@/components/ui/Avatar'
 import { Input } from '@/components/ui/Input'
@@ -47,6 +47,15 @@ export default function Messages() {
   const [pinnedChatIds, setPinnedChatIds] = useState<number[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDragging, setIsDragging] = useState(false)
+  // Per-contact cleared timestamps — messages before this time are hidden locally
+  const [clearedAt, setClearedAt] = useState<Record<number, number>>({})
+  // Per-contact muted state
+  const [mutedContacts, setMutedContacts] = useState<number[]>([])
+  // Select messages mode
+  const [selectMode, setSelectMode] = useState(false)
+  const [selectedMsgIds, setSelectedMsgIds] = useState<number[]>([])
+  // Contact info panel (non-group)
+  const [showContactInfo, setShowContactInfo] = useState(false)
   // Read from localStorage so dismissal survives refresh & contact switches
   const [dismissedApprovalBanner, setDismissedApprovalBanner] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -284,17 +293,27 @@ export default function Messages() {
   }
 
   const handleClearChat = () => {
-    setChatMessages([])
+    // Per-user: record timestamp; messages sent before now are hidden for THIS user only
+    if (activeContact) {
+      setClearedAt(prev => ({ ...prev, [activeContact.id]: Date.now() }))
+    }
     setIsHeaderMenuOpen(false)
   }
 
   const handleCloseChat = () => {
     setActiveContact(null)
     setIsHeaderMenuOpen(false)
+    setSelectMode(false)
+    setSelectedMsgIds([])
   }
 
   const handleMute = () => {
-    alert(`Notifications muted for ${activeContact.name}`)
+    if (!activeContact) return
+    setMutedContacts(prev =>
+      prev.includes(activeContact.id)
+        ? prev.filter(id => id !== activeContact.id)
+        : [...prev, activeContact.id]
+    )
     setIsHeaderMenuOpen(false)
   }
 
@@ -302,9 +321,33 @@ export default function Messages() {
     if (activeContact?.role === 'Group') {
       setShowGroupInfo(true)
     } else {
-      alert(`Contact Info: ${activeContact.name}\nRole: ${activeContact.role}`)
+      setShowContactInfo(true)
     }
     setIsHeaderMenuOpen(false)
+  }
+
+  const handleEnterSelectMode = () => {
+    setSelectMode(true)
+    setSelectedMsgIds([])
+    setIsHeaderMenuOpen(false)
+  }
+
+  const handleCancelSelectMode = () => {
+    setSelectMode(false)
+    setSelectedMsgIds([])
+  }
+
+  const handleToggleSelectMsg = (id: number) => {
+    setSelectedMsgIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    )
+  }
+
+  const handleDeleteSelected = () => {
+    setChatMessages(prev => prev.filter(m => !selectedMsgIds.includes(m.id)))
+    if (pinnedMessage && selectedMsgIds.includes(pinnedMessage.id)) setPinnedMessage(null)
+    setSelectMode(false)
+    setSelectedMsgIds([])
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -529,11 +572,12 @@ export default function Messages() {
                     <button onClick={handleContactInfo} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                       <User size={16} /> Contact Info
                     </button>
-                    <button onClick={() => { alert('Select messages mode'); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <button onClick={handleEnterSelectMode} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                       <CheckSquare size={16} /> Select messages
                     </button>
                     <button onClick={handleMute} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                      <BellOff size={16} /> Mute Notifications
+                      {activeContact && mutedContacts.includes(activeContact.id) ? <Bell size={16} /> : <BellOff size={16} />}
+                      {activeContact && mutedContacts.includes(activeContact.id) ? 'Unmute Notifications' : 'Mute Notifications'}
                     </button>
                     <button onClick={handleCloseChat} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                       <XCircle size={16} /> Close chat
@@ -635,22 +679,61 @@ export default function Messages() {
             )}
           </AnimatePresence>
 
+          {/* Select Mode Banner */}
+          <AnimatePresence>
+            {selectMode && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="relative z-10 shrink-0 px-4 py-2.5 flex items-center justify-between bg-indigo-600 text-white"
+              >
+                <span className="text-sm font-semibold">{selectedMsgIds.length} selected</span>
+                <div className="flex items-center gap-2">
+                  {selectedMsgIds.length > 0 && (
+                    <button onClick={handleDeleteSelected} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 hover:bg-red-600 rounded-lg text-xs font-bold transition-colors">
+                      <Trash2 size={12} /> Delete
+                    </button>
+                  )}
+                  <button onClick={handleCancelSelectMode} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors">
+                    <X size={16} />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Chat Messages */}
           <div ref={messagesContainerRef} className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-6 relative z-10">
             <AnimatePresence initial={false}>
-              {chatMessages.map((msg, index) => (
+              {chatMessages
+                .filter(msg => {
+                  const ct = activeContact ? clearedAt[activeContact.id] : 0
+                  // Filter out messages cleared by this user (compare by approximate send time)
+                  if (ct && msg.sentAt && msg.sentAt < ct) return false
+                  if (ct && !msg.sentAt && typeof msg.id === 'number' && msg.id < ct) return false
+                  return true
+                })
+                .map((msg, index) => (
                 <motion.div
                   id={`msg-${msg.id}`}
                   key={msg.id}
                   initial={{ opacity: 0, y: 20, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ duration: 0.3 }}
-                  className={`flex gap-3 transition-shadow duration-500 ${msg.isMe ? 'justify-end' : 'justify-start'}`}
+                  className={`flex gap-3 transition-shadow duration-500 ${msg.isMe ? 'justify-end' : 'justify-start'} ${selectMode ? 'cursor-pointer' : ''}`}
                   onContextMenu={(e) => {
+                    if (selectMode) return
                     e.preventDefault()
                     setContextMenu({ id: msg.id, x: e.clientX, y: e.clientY, isMe: msg.isMe, msg })
                   }}
+                  onClick={selectMode ? () => handleToggleSelectMsg(msg.id) : undefined}
               >
+                {selectMode && (
+                  <div className={`self-center w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedMsgIds.includes(msg.id) ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300 dark:border-slate-600'}`}>
+                    {selectedMsgIds.includes(msg.id) && <CheckCheck size={11} className="text-white" />}
+                  </div>
+                )}
                 {!msg.isMe && (
                   <div className="w-8 h-8 shrink-0 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold text-xs self-end mb-1 border border-white dark:border-slate-800 shadow-sm">
                     {activeContact.avatar}
@@ -1023,7 +1106,120 @@ export default function Messages() {
         )}
       </AnimatePresence>
 
+      {/* ══════════ CONTACT INFO PANEL (Individual) ══════════ */}
+      <AnimatePresence>
+        {showContactInfo && activeContact && activeContact.role !== 'Group' && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[110] bg-black/30 backdrop-blur-sm"
+              onClick={() => setShowContactInfo(false)}
+            />
+            <motion.div
+              initial={{ x: '100%', opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: '100%', opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+              className="fixed right-0 top-0 h-full w-full max-w-sm z-[120] bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden"
+            >
+              {/* Header */}
+              <div className="relative bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 pt-12 pb-8 px-6 flex flex-col items-center text-center">
+                <button
+                  onClick={() => setShowContactInfo(false)}
+                  className="absolute top-4 right-4 w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white transition-colors"
+                >
+                  <X size={16} />
+                </button>
+                <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white font-bold text-3xl shadow-lg mb-3">
+                  {activeContact.avatar}
+                </div>
+                <h2 className="text-white font-bold text-xl mb-0.5">{activeContact.name}</h2>
+                <span className="text-white/70 text-xs font-semibold uppercase tracking-widest">{activeContact.role}</span>
+                <div className="flex gap-3 mt-4">
+                  <button className="flex flex-col items-center gap-1.5 bg-white/15 hover:bg-white/25 px-4 py-2.5 rounded-xl transition-colors text-white text-xs font-semibold">
+                    <Phone size={18} /><span>Call</span>
+                  </button>
+                  <button className="flex flex-col items-center gap-1.5 bg-white/15 hover:bg-white/25 px-4 py-2.5 rounded-xl transition-colors text-white text-xs font-semibold">
+                    <Video size={18} /><span>Video</span>
+                  </button>
+                  <button className="flex flex-col items-center gap-1.5 bg-white/15 hover:bg-white/25 px-4 py-2.5 rounded-xl transition-colors text-white text-xs font-semibold">
+                    <Search size={18} /><span>Search</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Scrollable Body */}
+              <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+
+                {/* About */}
+                <div className="px-5 py-4">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">About</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 italic">
+                    "Learning is a lifelong journey." · {activeContact.role}
+                  </p>
+                  <p className="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
+                    Online
+                  </p>
+                </div>
+
+                {/* Media, links and docs */}
+                <div className="px-5 py-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                      <Image size={16} className="text-indigo-400" /> Media, links and docs
+                    </div>
+                    <span className="text-xs font-bold text-slate-400">12</span>
+                  </div>
+                  {/* Thumbnail strip */}
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {['bg-indigo-200', 'bg-violet-200', 'bg-rose-200', 'bg-amber-200'].map((c, i) => (
+                      <div key={i} className={`w-16 h-16 shrink-0 rounded-xl ${c} dark:opacity-60 flex items-center justify-center`}>
+                        {i < 2 ? <Image size={22} className="text-white/60" /> : <FileText size={22} className="text-white/60" />}
+                      </div>
+                    ))}
+                  </div>
+                  <button className="mt-3 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">View all media →</button>
+                </div>
+
+                {/* Settings rows */}
+                {[
+                  { icon: Star,  label: 'Starred messages',       sub: '3 starred',   action: () => {} },
+                  { icon: Bell,  label: 'Notification settings',  sub: mutedContacts.includes(activeContact.id) ? 'Muted' : 'On', action: () => { setMutedContacts(p => p.includes(activeContact.id) ? p.filter(x => x !== activeContact.id) : [...p, activeContact.id]) } },
+                  { icon: Clock, label: 'Disappearing messages',  sub: 'Off',         action: () => {} },
+                  { icon: Lock,  label: 'Encryption',             sub: 'End-to-end encrypted · Tap to verify', action: () => {} },
+                ].map(({ icon: Icon, label, sub, action }) => (
+                  <button key={label} onClick={action} className="w-full flex items-center gap-4 px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left">
+                    <Icon size={18} className="text-slate-400 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{label}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
+                    </div>
+                    <ChevronRight size={14} className="text-slate-300 dark:text-slate-600 shrink-0" />
+                  </button>
+                ))}
+
+                {/* Danger zone */}
+                <div className="px-5 py-4 space-y-1">
+                  <button
+                    onClick={() => { if (activeContact) { setClearedAt(prev => ({ ...prev, [activeContact.id]: Date.now() })); setShowContactInfo(false) } }}
+                    className="w-full flex items-center gap-3 px-1 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                  >
+                    <MinusCircle size={18} /> Clear chat
+                  </button>
+                  <button
+                    onClick={() => { if (activeContact) { handleDeleteContact(activeContact.id); setShowContactInfo(false) } }}
+                    className="w-full flex items-center gap-3 px-1 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                  >
+                    <Trash2 size={18} /> Delete chat
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Group Info Panel - Slide in from right */}
+
       <AnimatePresence>
         {showGroupInfo && activeContact?.role === 'Group' && (
           <>
