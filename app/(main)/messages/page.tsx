@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Send, Paperclip, MoreVertical, CheckCheck, Mic, X, ImageIcon, Reply, Forward, Trash2, ChevronDown, Edit2, Copy, User, BellOff, Bell, CheckSquare, XCircle, Pin, PinOff, MessageSquare, Archive, MinusCircle, ArrowLeft, Users, Calendar, BookOpen, Crown, Shield, GraduationCap, ChevronRight, Info, Star, Lock, Clock, Shield as ShieldIcon, Image, FileText, Link2, Phone, Video } from 'lucide-react'
+import { Search, Send, Paperclip, MoreVertical, CheckCheck, Mic, X, ImageIcon, Reply, Forward, Trash2, ChevronDown, Edit2, Copy, User, BellOff, Bell, CheckSquare, XCircle, Pin, PinOff, MessageSquare, Archive, MinusCircle, ArrowLeft, Users, Calendar, BookOpen, Crown, Shield, GraduationCap, ChevronRight, Info, Star, Lock, Clock, Shield as ShieldIcon, Image, FileText, Link2, Phone, Video, MicOff, VideoOff, AlertCircle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Avatar } from '@/components/ui/Avatar'
 import { Input } from '@/components/ui/Input'
@@ -56,6 +56,19 @@ export default function Messages() {
   const [selectedMsgIds, setSelectedMsgIds] = useState<number[]>([])
   // Contact info panel (non-group)
   const [showContactInfo, setShowContactInfo] = useState(false)
+  
+  // Modals & Sub-states for Info Panels
+  const [callingState, setCallingState] = useState<{ type: 'audio' | 'video', contact: any } | null>(null)
+  const [showMediaModal, setShowMediaModal] = useState(false)
+  const [showStarredModal, setShowStarredModal] = useState(false)
+  const [showDisappearingModal, setShowDisappearingModal] = useState(false)
+  const [disappearingSettings, setDisappearingSettings] = useState<Record<number, string>>({})
+  const [showEncryptionModal, setShowEncryptionModal] = useState(false)
+  const [showLeaveGroupModal, setShowLeaveGroupModal] = useState(false)
+  const [isChatSearchOpen, setIsChatSearchOpen] = useState(false)
+  const [chatSearchQuery, setChatSearchQuery] = useState('')
+  const [memberSearchQuery, setMemberSearchQuery] = useState('')
+  const [showAllMembers, setShowAllMembers] = useState(false)
   // Read from localStorage so dismissal survives refresh & contact switches
   const [dismissedApprovalBanner, setDismissedApprovalBanner] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -536,37 +549,54 @@ export default function Messages() {
           
           {/* Chat Header */}
           <div className="relative z-[50] shrink-0 p-4 md:p-6 flex items-center justify-between border-b border-indigo-100/50 dark:border-slate-800/50 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
-            <div
-                className="flex items-center gap-3 cursor-pointer select-none"
-                onClick={() => { if (activeContact?.role === 'Group') setShowGroupInfo(true) }}
-              >
-                <button 
-                  onClick={(e) => { e.stopPropagation(); setActiveContact(null); }}
-                  className="md:hidden p-2 -ml-2 mr-1 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
-                >
-                  <ArrowLeft size={20} />
+            {isChatSearchOpen ? (
+              <div className="flex-1 flex items-center gap-3 bg-white dark:bg-slate-800 rounded-xl px-4 py-2 border border-indigo-100 dark:border-slate-700 shadow-sm">
+                <Search size={18} className="text-slate-400" />
+                <input 
+                  type="text" 
+                  autoFocus
+                  placeholder="Search in conversation..." 
+                  value={chatSearchQuery}
+                  onChange={(e) => setChatSearchQuery(e.target.value)}
+                  className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-slate-700 dark:text-slate-200"
+                />
+                <button onClick={() => { setIsChatSearchOpen(false); setChatSearchQuery(''); }} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors text-slate-500">
+                  <X size={16} />
                 </button>
-                <div className="relative">
-                  <div className="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-md">
-                    {activeContact.avatar}
-                  </div>
-                  <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-900 dark:text-white text-[17px] flex items-center gap-1.5">
-                    {activeContact.name}
-                    {activeContact.role === 'Group' && <ChevronRight size={14} className="text-slate-400" />}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">{activeContact.role}</p>
-                    {mutedContacts.includes(activeContact.id) && (
-                      <span className="flex items-center gap-1 text-[10px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-full">
-                        <BellOff size={9} /> Muted
-                      </span>
-                    )}
-                  </div>
-                </div>
               </div>
+            ) : (
+              <div
+                  className="flex items-center gap-3 cursor-pointer select-none"
+                  onClick={() => { if (activeContact?.role === 'Group') setShowGroupInfo(true); else setShowContactInfo(true); }}
+                >
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setActiveContact(null); }}
+                    className="md:hidden p-2 -ml-2 mr-1 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+                  >
+                    <ArrowLeft size={20} />
+                  </button>
+                  <div className="relative">
+                    <div className="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-md">
+                      {activeContact.avatar}
+                    </div>
+                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900 dark:text-white text-[17px] flex items-center gap-1.5">
+                      {activeContact.name}
+                      {activeContact.role === 'Group' && <ChevronRight size={14} className="text-slate-400" />}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">{activeContact.role}</p>
+                      {mutedContacts.includes(activeContact.id) && (
+                        <span className="flex items-center gap-1 text-[10px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-full">
+                          <BellOff size={9} /> Muted
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+            )}
             <div className="relative z-[60]">
               <Button 
                 variant="ghost" 
@@ -751,6 +781,7 @@ export default function Messages() {
             <AnimatePresence initial={false}>
               {chatMessages
                 .filter(msg => {
+                  if (chatSearchQuery && !msg.text.toLowerCase().includes(chatSearchQuery.toLowerCase())) return false
                   const ct = activeContact ? clearedAt[activeContact.id] : 0
                   // Filter out messages cleared by this user (compare by approximate send time)
                   if (ct && msg.sentAt && msg.sentAt < ct) return false
@@ -1189,11 +1220,11 @@ export default function Messages() {
 
                 <div className="flex justify-center gap-4 mt-6 w-full">
                   {[
-                    { icon: Phone, label: 'Audio' },
-                    { icon: Video, label: 'Video' },
-                    { icon: Search, label: 'Search' },
+                    { icon: Phone, label: 'Audio', action: () => setCallingState({ type: 'audio', contact: activeContact }) },
+                    { icon: Video, label: 'Video', action: () => setCallingState({ type: 'video', contact: activeContact }) },
+                    { icon: Search, label: 'Search', action: () => { setShowContactInfo(false); setIsChatSearchOpen(true); } },
                   ].map((btn) => (
-                    <button key={btn.label} className="flex flex-col items-center gap-2 group">
+                    <button key={btn.label} onClick={btn.action} className="flex flex-col items-center gap-2 group">
                       <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
                         <btn.icon size={20} />
                       </div>
@@ -1229,7 +1260,7 @@ export default function Messages() {
                       </div>
                     ))}
                   </div>
-                  <button className="w-full py-2.5 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 transition-colors">
+                  <button onClick={() => setShowMediaModal(true)} className="w-full py-2.5 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 transition-colors">
                     View All Media
                   </button>
                 </div>
@@ -1237,10 +1268,10 @@ export default function Messages() {
                 {/* Settings Card */}
                 <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
                   {[
-                    { icon: Star,  label: 'Starred messages',       sub: '3 messages',   action: () => {} },
+                    { icon: Star,  label: 'Starred messages',       sub: '3 messages',   action: () => setShowStarredModal(true) },
                     { icon: Bell,  label: 'Mute Notifications',  sub: mutedContacts.includes(activeContact.id) ? 'Muted' : 'Off', action: () => { setMutedContacts(p => p.includes(activeContact.id) ? p.filter(x => x !== activeContact.id) : [...p, activeContact.id]) }, toggle: true },
-                    { icon: Clock, label: 'Disappearing messages',  sub: 'Off',         action: () => {} },
-                    { icon: ShieldIcon,  label: 'Encryption',             sub: 'Messages are end-to-end encrypted.', action: () => {} },
+                    { icon: Clock, label: 'Disappearing messages',  sub: disappearingSettings[activeContact.id] || 'Off', action: () => setShowDisappearingModal(true) },
+                    { icon: ShieldIcon,  label: 'Encryption',             sub: 'Messages are end-to-end encrypted.', action: () => setShowEncryptionModal(true) },
                   ].map(({ icon: Icon, label, sub, action, toggle }, i) => (
                     <button key={label} onClick={action} className={`w-full flex items-center gap-4 px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left ${i !== 0 ? 'border-t border-slate-50 dark:border-slate-800/50' : ''}`}>
                       <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 shrink-0">
@@ -1321,11 +1352,11 @@ export default function Messages() {
 
                 <div className="flex justify-center gap-4 mt-6 w-full">
                   {[
-                    { icon: Phone, label: 'Audio' },
-                    { icon: Video, label: 'Video' },
-                    { icon: Search, label: 'Search' },
+                    { icon: Phone, label: 'Audio', action: () => setCallingState({ type: 'audio', contact: activeContact }) },
+                    { icon: Video, label: 'Video', action: () => setCallingState({ type: 'video', contact: activeContact }) },
+                    { icon: Search, label: 'Search', action: () => { setShowGroupInfo(false); setIsChatSearchOpen(true); } },
                   ].map((btn) => (
-                    <button key={btn.label} className="flex flex-col items-center gap-2 group">
+                    <button key={btn.label} onClick={btn.action} className="flex flex-col items-center gap-2 group">
                       <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
                         <btn.icon size={20} />
                       </div>
@@ -1361,7 +1392,7 @@ export default function Messages() {
                       </div>
                     ))}
                   </div>
-                  <button className="w-full py-2.5 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 transition-colors">
+                  <button onClick={() => setShowMediaModal(true)} className="w-full py-2.5 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 transition-colors">
                     View All Media
                   </button>
                 </div>
@@ -1370,7 +1401,8 @@ export default function Messages() {
                 <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
                   {[
                     { icon: Bell,  label: 'Mute Notifications',  sub: mutedContacts.includes(activeContact.id) ? 'Muted' : 'Off', action: () => { setMutedContacts(p => p.includes(activeContact.id) ? p.filter(x => x !== activeContact.id) : [...p, activeContact.id]) }, toggle: true },
-                    { icon: ShieldIcon,  label: 'Encryption',             sub: 'Messages are end-to-end encrypted.', action: () => {} },
+                    { icon: Clock, label: 'Disappearing messages',  sub: disappearingSettings[activeContact.id] || 'Off', action: () => setShowDisappearingModal(true) },
+                    { icon: ShieldIcon,  label: 'Encryption',             sub: 'Messages are end-to-end encrypted.', action: () => setShowEncryptionModal(true) },
                   ].map(({ icon: Icon, label, sub, action, toggle }, i) => (
                     <button key={label} onClick={action} className={`w-full flex items-center gap-4 px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left ${i !== 0 ? 'border-t border-slate-50 dark:border-slate-800/50' : ''}`}>
                       <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 shrink-0">
@@ -1397,9 +1429,17 @@ export default function Messages() {
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                       <Users size={14} /> 124 Members
                     </h3>
-                    <button className="text-emerald-600 dark:text-emerald-400 p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors">
-                      <Search size={16} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {memberSearchQuery !== null && (
+                        <input
+                          type="text"
+                          placeholder="Search..."
+                          value={memberSearchQuery}
+                          onChange={(e) => setMemberSearchQuery(e.target.value)}
+                          className="w-24 bg-slate-100 dark:bg-slate-800 rounded-md px-2 py-1 text-xs text-slate-700 dark:text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+                      )}
+                    </div>
                   </div>
                   <div className="space-y-1">
                     {[
@@ -1432,15 +1472,18 @@ export default function Messages() {
                         </div>
                       )
                     })}
-                    <button className="w-full mt-1 py-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-xl transition-colors">
-                      View All 124 Members
+                    {showAllMembers && (
+                      <div className="p-2 text-center text-xs text-slate-500">Loading 119 more members...</div>
+                    )}
+                    <button onClick={() => setShowAllMembers(!showAllMembers)} className="w-full mt-1 py-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-xl transition-colors">
+                      {showAllMembers ? 'Show Less' : 'View All 124 Members'}
                     </button>
                   </div>
                 </div>
 
                 {/* Danger Card */}
                 <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-red-100 dark:border-red-900/30 overflow-hidden mb-4">
-                  <button className="w-full flex items-center gap-3 px-5 py-4 text-sm font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
+                  <button onClick={() => setShowLeaveGroupModal(true)} className="w-full flex items-center gap-3 px-5 py-4 text-sm font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
                     <MinusCircle size={18} /> Leave Group
                   </button>
                 </div>
@@ -1450,6 +1493,181 @@ export default function Messages() {
           </>
         )}
       </AnimatePresence>
+      {/* ══════════ NON-DUMMY MODALS ══════════ */}
+
+      {/* Calling State Modal */}
+      <AnimatePresence>
+        {callingState && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-slate-900/95 backdrop-blur-xl flex flex-col items-center justify-center text-white">
+            <div className="absolute top-10 flex flex-col items-center gap-2">
+              <div className="w-32 h-32 rounded-full bg-indigo-500/20 flex items-center justify-center animate-pulse">
+                <div className="w-24 h-24 rounded-full bg-indigo-500 flex items-center justify-center text-4xl font-bold shadow-[0_0_40px_rgba(99,102,241,0.6)]">
+                  {callingState.contact.avatar}
+                </div>
+              </div>
+              <h2 className="text-3xl font-bold mt-4">{callingState.contact.name}</h2>
+              <p className="text-indigo-300 font-medium">{callingState.type === 'video' ? 'Video calling...' : 'Ringing...'}</p>
+            </div>
+            
+            <div className="absolute bottom-20 flex gap-6">
+              <button className="w-16 h-16 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md transition-colors">
+                <MicOff size={24} />
+              </button>
+              {callingState.type === 'video' && (
+                <button className="w-16 h-16 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md transition-colors">
+                  <VideoOff size={24} />
+                </button>
+              )}
+              <button onClick={() => setCallingState(null)} className="w-16 h-16 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.5)] transition-colors">
+                <Phone size={24} className="rotate-[135deg]" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Media Modal */}
+      <AnimatePresence>
+        {showMediaModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-3xl h-[80vh] flex flex-col overflow-hidden shadow-2xl">
+              <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800">
+                <h3 className="font-bold text-lg dark:text-white">Media, links and docs</h3>
+                <button onClick={() => setShowMediaModal(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full"><X size={20} /></button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                {Array.from({ length: 24 }).map((_, i) => (
+                  <div key={i} className="aspect-square bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden flex items-center justify-center group relative cursor-pointer">
+                    <Image size={32} className="text-slate-300 dark:text-slate-600" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Search size={20} className="text-white" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Starred Messages Modal */}
+      <AnimatePresence>
+        {showStarredModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden shadow-2xl">
+              <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800">
+                <h3 className="font-bold text-lg dark:text-white">Starred Messages</h3>
+                <button onClick={() => setShowStarredModal(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full"><X size={20} /></button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 dark:bg-slate-950">
+                {[
+                  { text: "Don't forget the assignment is due tomorrow at 11:59 PM.", time: "Yesterday, 10:30 AM" },
+                  { text: "Here is the link to the recorded lecture: https://edusync.video/xyz", time: "Monday, 2:15 PM" },
+                  { text: "Great job on the presentation today!", time: "Last Week" },
+                ].map((msg, i) => (
+                  <div key={i} className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-xs font-bold text-slate-400">{activeContact?.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-slate-400">{msg.time}</span>
+                        <Star size={12} className="text-amber-500 fill-amber-500" />
+                      </div>
+                    </div>
+                    <p className="text-sm dark:text-slate-200">{msg.text}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Disappearing Messages Modal */}
+      <AnimatePresence>
+        {showDisappearingModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-sm flex flex-col overflow-hidden shadow-2xl p-6">
+              <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 rounded-full flex items-center justify-center mb-4 mx-auto">
+                <Clock size={24} />
+              </div>
+              <h3 className="font-bold text-xl text-center dark:text-white mb-2">Message Timer</h3>
+              <p className="text-sm text-center text-slate-500 dark:text-slate-400 mb-6">For more privacy, new messages will disappear for everyone after the selected duration.</p>
+              
+              <div className="space-y-2">
+                {['Off', '24 hours', '7 days', '90 days'].map((option) => (
+                  <button 
+                    key={option} 
+                    onClick={() => {
+                      if (activeContact) {
+                        setDisappearingSettings(p => ({ ...p, [activeContact.id]: option }))
+                        setShowDisappearingModal(false)
+                      }
+                    }}
+                    className={`w-full flex items-center justify-between p-4 rounded-xl border ${disappearingSettings[activeContact?.id || 0] === option || (option === 'Off' && !disappearingSettings[activeContact?.id || 0]) ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                  >
+                    <span className="font-semibold dark:text-white">{option}</span>
+                    {(disappearingSettings[activeContact?.id || 0] === option || (option === 'Off' && !disappearingSettings[activeContact?.id || 0])) && <CheckCheck size={18} className="text-indigo-600" />}
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => setShowDisappearingModal(false)} className="mt-4 w-full py-3 text-sm font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">Cancel</button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Encryption Modal */}
+      <AnimatePresence>
+        {showEncryptionModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-sm flex flex-col overflow-hidden shadow-2xl p-6 items-center text-center">
+              <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-full flex items-center justify-center mb-4">
+                <ShieldIcon size={32} />
+              </div>
+              <h3 className="font-bold text-xl dark:text-white mb-2">End-to-end Encrypted</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Messages and calls in this chat are secured with end-to-end encryption. Only you and {activeContact?.name} can read or listen to them.</p>
+              
+              {/* Fake QR Code */}
+              <div className="w-48 h-48 bg-white border-2 border-slate-200 rounded-xl p-2 mb-6 flex flex-wrap gap-1 items-center justify-center opacity-80">
+                {Array.from({ length: 64 }).map((_, i) => (
+                  <div key={i} className={`w-4 h-4 rounded-sm ${Math.random() > 0.5 ? 'bg-slate-900' : 'bg-transparent'}`} />
+                ))}
+              </div>
+              
+              <button onClick={() => setShowEncryptionModal(false)} className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors">Verify Security Code</button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Leave Group Modal */}
+      <AnimatePresence>
+        {showLeaveGroupModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-xs flex flex-col overflow-hidden shadow-2xl p-6 text-center">
+              <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-full flex items-center justify-center mb-4 mx-auto">
+                <AlertCircle size={24} />
+              </div>
+              <h3 className="font-bold text-xl dark:text-white mb-2">Leave Group?</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Are you sure you want to leave "{activeContact?.name}"? You will no longer receive messages from this group.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setShowLeaveGroupModal(false)} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl transition-colors">Cancel</button>
+                <button 
+                  onClick={() => { 
+                    setShowLeaveGroupModal(false); 
+                    setShowGroupInfo(false); 
+                    if (activeContact) handleDeleteContact(activeContact.id); 
+                  }} 
+                  className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-colors"
+                >
+                  Leave
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   )
 }
