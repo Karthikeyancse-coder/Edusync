@@ -47,7 +47,18 @@ export default function Messages() {
   const [pinnedChatIds, setPinnedChatIds] = useState<number[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDragging, setIsDragging] = useState(false)
-  const [dismissedApprovalBanner, setDismissedApprovalBanner] = useState(false)
+  // Read from localStorage so dismissal survives refresh & contact switches
+  const [dismissedApprovalBanner, setDismissedApprovalBanner] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('edusync_approval_banner_dismissed') === 'true'
+    }
+    return false
+  })
+
+  const dismissBannerForever = () => {
+    localStorage.setItem('edusync_approval_banner_dismissed', 'true')
+    setDismissedApprovalBanner(true)
+  }
   
   useEffect(() => {
     // Generate bubbles only on client side to prevent hydration mismatch
@@ -113,9 +124,6 @@ export default function Messages() {
         })
         setActiveContact(newContact)
       }
-      
-      // Reset banner dismiss when switching contact
-      setDismissedApprovalBanner(false)
       
       // Clean up the URL without triggering a page reload
       window.history.replaceState({}, '', '/messages')
@@ -402,7 +410,7 @@ export default function Messages() {
                     exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
                     transition={{ type: "spring", stiffness: 500, damping: 40 }}
                     key={contact.id}
-                    onClick={() => { setActiveContact(contact); setDismissedApprovalBanner(false); }}
+                    onClick={() => setActiveContact(contact)}
                     onContextMenu={(e) => {
                       e.preventDefault()
                       setContactContextMenu({
@@ -566,9 +574,9 @@ export default function Messages() {
               </div>
               {/* Dismiss X button */}
               <button
-                onClick={() => setDismissedApprovalBanner(true)}
+                onClick={dismissBannerForever}
                 className="shrink-0 p-1 rounded-full text-amber-600 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-800/50 transition-colors"
-                aria-label="Dismiss"
+                aria-label="Dismiss forever"
               >
                 <X size={14} />
               </button>
@@ -587,9 +595,9 @@ export default function Messages() {
               </div>
               {/* Dismiss X button */}
               <button
-                onClick={() => setDismissedApprovalBanner(true)}
+                onClick={dismissBannerForever}
                 className="shrink-0 p-1 rounded-full text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-colors"
-                aria-label="Dismiss"
+                aria-label="Dismiss forever"
               >
                 <X size={14} />
               </button>
