@@ -231,14 +231,7 @@ export default function LoginPage() {
             />
           </div>
           
-          {/* Overlay text on top of animation */}
-          <div className="relative z-10 p-8 rounded-2xl bg-white/10 dark:bg-black/30 backdrop-blur-xl border border-white/30 dark:border-white/10 mt-auto mb-10 shadow-2xl">
-            <h2 className="text-3xl font-bold text-white mb-3 drop-shadow-md">College Communication</h2>
-            <p className="text-white/90 text-sm leading-relaxed drop-shadow-sm">
-              Connect effortlessly with faculty, departments, and students.
-              Real-time messaging, announcements, and group discussions all in one place.
-            </p>
-          </div>
+
         </div>
       </motion.div>
     </div>
