@@ -17,8 +17,8 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const demoRole = request.cookies.get('demo_role')?.value
 
-  // Not authenticated → redirect to login
-  if (!user && !demoRole && pathname !== '/login') {
+  // Not authenticated → redirect to login (but allow landing page at /)
+  if (!user && !demoRole && pathname !== '/login' && pathname !== '/') {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 

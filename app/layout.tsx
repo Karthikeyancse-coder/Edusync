@@ -5,8 +5,8 @@ import { AuthProvider } from '@/providers/AuthProvider'
 import { RealtimeProvider } from '@/providers/RealtimeProvider'
 
 export const metadata: Metadata = {
-  title: 'EduSync',
-  description: 'College Communication Platform',
+  title: 'EduSync — The College OS Built for Every Role',
+  description: 'EduSync is a structured college communication platform for Indian engineering colleges. Role-based messaging, attendance tracking, marks management, and 3-tier approval workflows — for Principal, HOD, Faculty, and Students.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
