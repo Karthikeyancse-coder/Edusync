@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Send, Paperclip, MoreVertical, CheckCheck, Mic, X, ImageIcon, Reply, Forward, Trash2, ChevronDown, Edit2, Copy, User, BellOff, Bell, CheckSquare, XCircle, Pin, PinOff, MessageSquare, Archive, MinusCircle, ArrowLeft, Users, Calendar, BookOpen, Crown, Shield, GraduationCap, ChevronRight, Info, Star, Lock, Clock, Shield as ShieldIcon, Image, FileText, Link2, Phone, Video, MicOff, VideoOff, AlertCircle } from 'lucide-react'
+import { Search, Send, Paperclip, MoreVertical, CheckCheck, Mic, X, ImageIcon, Reply, Forward, Trash2, ChevronDown, Edit2, Copy, User, BellOff, Bell, CheckSquare, XCircle, Pin, PinOff, MessageSquare, Archive, MinusCircle, ArrowLeft, Users, Calendar, BookOpen, Crown, Shield, GraduationCap, ChevronRight, Info, Star, Lock, Clock, Shield as ShieldIcon, Image, FileText, Link2, Phone, Video, MicOff, VideoOff, AlertCircle, Settings, Wrench } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Avatar } from '@/components/ui/Avatar'
 import { Input } from '@/components/ui/Input'
@@ -1504,9 +1504,33 @@ export default function Messages() {
                 <X size={20} />
               </button>
               
-              <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 rounded-full flex items-center justify-center mb-6 relative">
-                <div className="absolute inset-0 bg-indigo-500 rounded-full opacity-20 animate-ping"></div>
-                {callingState.type === 'video' ? <Video size={36} className="relative z-10" /> : <Phone size={36} className="relative z-10" />}
+              <div className="relative w-32 h-32 mb-6 flex items-center justify-center">
+                {/* Spinning Gear Background */}
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
+                  className="absolute inset-0 text-indigo-100 dark:text-indigo-900/40 flex items-center justify-center"
+                >
+                  <Settings size={120} strokeWidth={1} />
+                </motion.div>
+                
+                {/* Foreground Icon (Bouncing slightly) */}
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                  className="relative z-10 w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-indigo-50 dark:border-slate-700 flex items-center justify-center text-indigo-600 dark:text-indigo-400"
+                >
+                  {callingState.type === 'video' ? <Video size={32} /> : <Phone size={32} />}
+                </motion.div>
+                
+                {/* Small floating tools */}
+                <motion.div
+                  animate={{ rotate: [-15, 15, -15], x: [0, 6, 0], y: [0, -4, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                  className="absolute bottom-2 right-2 bg-indigo-600 text-white p-2 rounded-full shadow-lg z-20 border-2 border-white dark:border-slate-900"
+                >
+                  <Wrench size={16} />
+                </motion.div>
               </div>
               
               <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">Feature in Development</h3>
