@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Hash, Lock, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/Logo'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -98,7 +99,10 @@ export default function LoginPage() {
                   placeholder="e.g. FAC-CSE-001"
                   icon={<Hash size={18} />}
                   value={uniqueId}
-                  onChange={(e) => setUniqueId(e.target.value)}
+                  onChange={(e) => {
+                    setUniqueId(e.target.value)
+                    if (error) setError('')
+                  }}
                   error={!!(error && !uniqueId)}
                 />
               </motion.div>
@@ -113,7 +117,10 @@ export default function LoginPage() {
                   placeholder="Password"
                   icon={<Lock size={18} />}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    if (error) setError('')
+                  }}
                   error={!!(error && !password)}
                   rightElement={
                     <button
@@ -127,19 +134,6 @@ export default function LoginPage() {
                 />
               </motion.div>
 
-              <AnimatePresence>
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="flex items-center text-[var(--error)] text-sm bg-[var(--error)]/10 p-3 rounded-input"
-                  >
-                    <span>{error}</span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -148,15 +142,22 @@ export default function LoginPage() {
               >
                 <Button
                   onClick={handleLogin}
-                  variant="primary"
-                  className="w-full"
+                  variant={error ? 'outline' : 'primary'}
+                  className={cn(
+                    "w-full transition-all duration-300",
+                    error ? "bg-red-500 hover:bg-red-600 text-white border-transparent shadow-[0_0_20px_rgba(239,68,68,0.3)]" : ""
+                  )}
                   loading={isLoading}
                 >
                   {!isLoading && (
-                    <>
-                      Sign in
-                      <ArrowRight size={18} />
-                    </>
+                    error ? (
+                      <span className="font-bold">{error}</span>
+                    ) : (
+                      <>
+                        Sign in
+                        <ArrowRight size={18} />
+                      </>
+                    )
                   )}
                 </Button>
               </motion.div>
