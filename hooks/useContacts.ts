@@ -45,7 +45,7 @@ export function useContacts(
       ])
 
       // Trigger escalation check in the background (no await)
-      escalateStalePendingMessages().catch(console.error)
+
 
       setContacts(
         (contactData as Contact[]).map(c => ({

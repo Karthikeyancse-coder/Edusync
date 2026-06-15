@@ -1,4 +1,8 @@
-'use client'
+const fs = require('fs');
+
+let content = fs.readFileSync('providers/AuthProvider.tsx', 'utf8');
+
+const newContent = `'use client'
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -83,28 +87,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     document.cookie = 'demo_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-    try {
-      await supabase.auth.signOut()
-    } catch (e) {
-      console.error('Sign out error:', e)
-    }
-    setUser(null)
-    setProfile(null)
+    await supabase.auth.signOut()
     router.push('/login')
   }
 
   const demoLogin = async (role: Role) => {
     setIsLoading(true)
-    
-    // Map roles to their specific demo user emails
-    const roleEmails: Record<Role, string> = {
-      student: 'aarav.shah@edusync.edu',
-      faculty: 's.jenkins@edusync.edu',
-      hod: 'a.turing@edusync.edu',
-      principal: 'admin@edusync.edu'
-    }
-    
-    const email = roleEmails[role] || `${role}@edusync.edu`
+    const email = \`\${role}@edusync.edu\`
     const password = 'password123'
     
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
@@ -143,3 +132,7 @@ export function useAuth() {
   }
   return context
 }
+`;
+
+fs.writeFileSync('providers/AuthProvider.tsx', newContent, 'utf8');
+console.log('Rewrote AuthProvider.tsx to use real Supabase Auth');

@@ -8,16 +8,13 @@ import { Avatar } from '@/components/ui/Avatar'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { useAuth } from '@/providers/AuthProvider'
-import { useContacts } from '@/hooks/useContacts'
-import { useMessages } from '@/hooks/useMessages'
 
 const initialContacts = [
-  { id: '22222222-2222-2222-2222-222222222222', name: 'Dr. Sarah Jenkins', role: 'Professor', lastMessage: 'The syllabus has been updated.', time: '10:42 AM', unread: 2, avatar: 'SJ' },
-  { id: '2', name: 'Computer Science 101', role: 'Group', lastMessage: 'Don\'t forget the assignment!', time: 'Yesterday', unread: 0, avatar: 'CS' },
-  { id: '66666666-6666-6666-6666-666666666666', name: 'Michael Chen', role: 'Student', lastMessage: 'Thanks for the help!', time: 'Tuesday', unread: 0, avatar: 'MC' },
-  { id: '4', name: 'Faculty Announcements', role: 'Group', lastMessage: 'Meeting at 3 PM in Room 4B.', time: 'Monday', unread: 5, avatar: 'FA' },
-  { id: '2717998a-0e09-42cc-8b8b-835a1146b481', name: 'Admin Principal', role: 'Principal', lastMessage: 'Tap to send a message (needs approval)', time: '', unread: 0, avatar: 'AP' },
+  { id: 1, name: 'Dr. Sarah Jenkins', role: 'Professor', lastMessage: 'The syllabus has been updated.', time: '10:42 AM', unread: 2, avatar: 'SJ' },
+  { id: 2, name: 'Computer Science 101', role: 'Group', lastMessage: 'Don\'t forget the assignment!', time: 'Yesterday', unread: 0, avatar: 'CS' },
+  { id: 3, name: 'Michael Chen', role: 'Student', lastMessage: 'Thanks for the help!', time: 'Tuesday', unread: 0, avatar: 'MC' },
+  { id: 4, name: 'Faculty Announcements', role: 'Group', lastMessage: 'Meeting at 3 PM in Room 4B.', time: 'Monday', unread: 5, avatar: 'FA' },
+  { id: 5, name: 'Admin Principal', role: 'Principal', lastMessage: 'Tap to send a message (needs approval)', time: '', unread: 0, avatar: 'AP' },
 ]
 
 const initialMessages = [
@@ -27,58 +24,17 @@ const initialMessages = [
 ]
 
 export default function Messages() {
-  const { profile, role, department } = useAuth()
-  const [activeContact, setActiveContact] = useState<any | null>(null)
-  const { contacts: realContacts, isLoading: isContactsLoading } = useContacts(profile?.id, role as any, department, false)
-  const { messages: realMessages, send: sendRealMessage } = useMessages(profile?.id, activeContact?.id, role as any, (activeContact?.raw?.role || activeContact?.role?.toLowerCase() || null) as any)
-
   const [contacts, setContacts] = useState<any[]>(initialContacts)
+  const [activeContact, setActiveContact] = useState<any | null>(null)
   const [message, setMessage] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [filterMode, setFilterMode] = useState<'all' | 'individual' | 'group'>('all')
   const [chatMessages, setChatMessages] = useState<any[]>(initialMessages)
-
-  useEffect(() => {
-    if (realContacts.length > 0) {
-      setContacts(realContacts.map(c => ({
-        id: c.id,
-        name: c.name,
-        role: c.role.charAt(0).toUpperCase() + c.role.slice(1),
-        lastMessage: c.lastMessage || 'No recent messages',
-        time: c.lastMessageTime ? new Date(c.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-        unread: c.unread || 0,
-        avatar: c.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase(),
-        raw: c
-      })))
-    }
-  }, [realContacts])
-
-
-  useEffect(() => {
-    if (activeContact) {
-      setChatMessages(realMessages.map(m => ({
-        id: m.id,
-        senderId: m.sender_id === profile?.id ? 'me' : m.sender_id,
-        text: m.content,
-        time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        isMe: m.sender_id === profile?.id,
-        image: null,
-        images: m.attachments?.map((a: any) => a.file_url) || null,
-        isAudio: false,
-        status: m.status,
-        approvalStatus: m.status.startsWith('pending') ? m.status : null,
-        raw: m
-      })))
-    } else {
-      setChatMessages([])
-    }
-  }, [realMessages, profile?.id, activeContact])
-
   
   const [attachments, setAttachments] = useState<string[]>([])
   const [isRecording, setIsRecording] = useState(false)
   
-  const [contextMenu, setContextMenu] = useState<{ id: any, x: number, y: number, isMe: boolean, msg: any } | null>(null)
+  const [contextMenu, setContextMenu] = useState<{ id: number, x: number, y: number, isMe: boolean, msg: any } | null>(null)
   const [contactContextMenu, setContactContextMenu] = useState<{ x: number, y: number, contact: any } | null>(null)
   const [pinnedMessage, setPinnedMessage] = useState<any | null>(null)
   const [replyingTo, setReplyingTo] = useState<any | null>(null)
@@ -86,18 +42,18 @@ export default function Messages() {
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false)
   const [showGroupInfo, setShowGroupInfo] = useState(false)
   const [bubbles, setBubbles] = useState<any[]>([])
-  const [archivedChatIds, setArchivedChatIds] = useState<any[]>([])
+  const [archivedChatIds, setArchivedChatIds] = useState<number[]>([])
   const [showArchived, setShowArchived] = useState(false)
-  const [pinnedChatIds, setPinnedChatIds] = useState<any[]>([])
+  const [pinnedChatIds, setPinnedChatIds] = useState<number[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDragging, setIsDragging] = useState(false)
   // Per-contact cleared timestamps — messages before this time are hidden locally
-  const [clearedAt, setClearedAt] = useState<Record<string, number>>({})
+  const [clearedAt, setClearedAt] = useState<Record<number, number>>({})
   // Per-contact muted state
-  const [mutedContacts, setMutedContacts] = useState<any[]>([])
+  const [mutedContacts, setMutedContacts] = useState<number[]>([])
   // Select messages mode
   const [selectMode, setSelectMode] = useState(false)
-  const [selectedMsgIds, setSelectedMsgIds] = useState<any[]>([])
+  const [selectedMsgIds, setSelectedMsgIds] = useState<number[]>([])
   // Contact info panel (non-group)
   const [showContactInfo, setShowContactInfo] = useState(false)
   
@@ -106,7 +62,7 @@ export default function Messages() {
   const [showMediaModal, setShowMediaModal] = useState(false)
   const [showStarredModal, setShowStarredModal] = useState(false)
   const [showDisappearingModal, setShowDisappearingModal] = useState(false)
-  const [disappearingSettings, setDisappearingSettings] = useState<Record<string, string>>({})
+  const [disappearingSettings, setDisappearingSettings] = useState<Record<number, string>>({})
   const [showEncryptionModal, setShowEncryptionModal] = useState(false)
   const [showLeaveGroupModal, setShowLeaveGroupModal] = useState(false)
   const [isChatSearchOpen, setIsChatSearchOpen] = useState(false)
@@ -174,7 +130,7 @@ export default function Messages() {
         setActiveContact(existing)
       } else {
         const newContact = { 
-          id: userId, 
+          id: parseInt(userId) + 1000, 
           name, 
           role: isGroup ? 'Group' : 'Directory User', 
           lastMessage: '', 
@@ -236,9 +192,8 @@ export default function Messages() {
     })
   }
 
-  const handleSend = async () => {
+  const handleSend = () => {
     if (!message.trim() && attachments.length === 0 && !isRecording) return
-    if (!activeContact) return
 
     if (editingMessage) {
       setChatMessages(prev => prev.map(m => 
@@ -251,26 +206,44 @@ export default function Messages() {
       return
     }
 
-    const msgText = isRecording ? 'Audio Message' : message
-    try {
-      await sendRealMessage(msgText, false)
-      setMessage('')
-      setAttachments([])
-      setIsRecording(false)
-      setReplyingTo(null)
-    } catch (err: any) {
-      console.error("Failed to send message", err)
-      alert("Failed to send message: " + err.message)
+    // Detect if sending to a principal or HOD — needs approval chain
+    const recipientRole = activeContact?.role?.toLowerCase() || ''
+    const needsApproval = recipientRole.includes('principal')
+    const needsHodApproval = recipientRole.includes('principal') // student→principal needs faculty+hod
+
+    const newMessage = {
+      id: Date.now(),
+      senderId: 'me',
+      text: isRecording ? 'Audio Message' : message,
+      image: null,
+      images: attachments.length > 0 ? attachments : null,
+      isAudio: isRecording,
+      replyTo: replyingTo,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      isMe: true,
+      // Approval chain tracking
+      approvalStatus: needsApproval ? 'pending_faculty' : null,
+      approvalSteps: needsApproval ? [
+        { label: 'Faculty', status: 'pending' },
+        { label: 'HOD', status: 'pending' },
+        { label: 'Principal', status: 'pending' },
+      ] : null,
     }
+
+    setChatMessages([...chatMessages, newMessage])
+    setMessage('')
+    setAttachments([])
+    setIsRecording(false)
+    setReplyingTo(null)
   }
 
-  const handleDeleteMessage = (id: any) => {
+  const handleDeleteMessage = (id: number) => {
     setChatMessages(prev => prev.filter(m => m.id !== id))
     if (pinnedMessage?.id === id) setPinnedMessage(null)
     setContextMenu(null)
   }
 
-  const handleArchiveChat = (id: any) => {
+  const handleArchiveChat = (id: number) => {
     if (archivedChatIds.includes(id)) {
       setArchivedChatIds(prev => prev.filter(aid => aid !== id)) // Unarchive
     } else {
@@ -279,7 +252,7 @@ export default function Messages() {
     setContactContextMenu(null)
   }
 
-  const handlePinContact = (id: any) => {
+  const handlePinContact = (id: number) => {
     if (pinnedChatIds.includes(id)) {
       setPinnedChatIds(prev => prev.filter(pid => pid !== id))
     } else {
@@ -288,18 +261,18 @@ export default function Messages() {
     setContactContextMenu(null)
   }
 
-  const handleToggleUnreadContact = (id: any) => {
+  const handleToggleUnreadContact = (id: number) => {
     setContacts(prev => prev.map(c => c.id === id ? { ...c, unread: c.unread > 0 ? 0 : 1 } : c))
     setContactContextMenu(null)
   }
 
-  const handleClearChatContact = (id: any) => {
+  const handleClearChatContact = (id: number) => {
     if (activeContact?.id === id) setChatMessages([])
     setContacts(prev => prev.map(c => c.id === id ? { ...c, lastMessage: '' } : c))
     setContactContextMenu(null)
   }
 
-  const handleDeleteContact = (id: any) => {
+  const handleDeleteContact = (id: number) => {
     setContacts(prev => prev.filter(c => c.id !== id))
     if (activeContact?.id === id) setActiveContact(null)
     setContactContextMenu(null)
@@ -377,7 +350,7 @@ export default function Messages() {
     setSelectedMsgIds([])
   }
 
-  const handleToggleSelectMsg = (id: any) => {
+  const handleToggleSelectMsg = (id: number) => {
     setSelectedMsgIds(prev =>
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     )

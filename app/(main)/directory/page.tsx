@@ -12,14 +12,14 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { useAuth } from '@/providers/AuthProvider'
 
 const users = [
-  { id: 1, name: 'Emma Thompson', role: 'student', department: 'Computer Science', email: 'emma.t@edusync.edu', status: 'online', year: '1st Year', section: 'a', studentType: 'rep' },
-  { id: 2, name: 'Dr. Sarah Jenkins', role: 'faculty', department: 'Mathematics', email: 's.jenkins@edusync.edu', status: 'offline' },
-  { id: 3, name: 'Admin Principal', role: 'principal', department: 'Administration', email: 'principal@edusync.edu', status: 'online' },
-  { id: 4, name: 'Prof. Alan Turing', role: 'hod', department: 'Computer Science', email: 'a.turing@edusync.edu', status: 'offline' },
-  { id: 5, name: 'Michael Chen', role: 'student', department: 'Physics', email: 'm.chen@edusync.edu', status: 'online', year: '2nd Year', section: 'b', studentType: 'all' },
-  { id: 6, name: 'Sarah Connor', role: 'student', department: 'Engineering', email: 's.connor@edusync.edu', status: 'offline', year: '3rd Year', section: 'c', studentType: 'all' },
-  { id: 7, name: 'Dr. Marie Curie', role: 'hod', department: 'Physics', email: 'm.curie@edusync.edu', status: 'online' },
-  { id: 8, name: 'John Doe', role: 'student', department: 'Mathematics', email: 'j.doe@edusync.edu', status: 'offline', year: '1st Year', section: 'a', studentType: 'all' },
+  { id: '55555555-5555-5555-5555-555555555555', name: 'Emma Thompson', role: 'student', department: 'Computer Science', email: 'emma.t@edusync.edu', status: 'online', year: '1st Year', section: 'a', studentType: 'rep' },
+  { id: '22222222-2222-2222-2222-222222222222', name: 'Dr. Sarah Jenkins', role: 'faculty', department: 'Mathematics', email: 's.jenkins@edusync.edu', status: 'offline' },
+  { id: '2717998a-0e09-42cc-8b8b-835a1146b481', name: 'Admin Principal', role: 'principal', department: 'Administration', email: 'principal@edusync.edu', status: 'online' },
+  { id: '33333333-3333-3333-3333-333333333333', name: 'Prof. Alan Turing', role: 'hod', department: 'Computer Science', email: 'a.turing@edusync.edu', status: 'offline' },
+  { id: '66666666-6666-6666-6666-666666666666', name: 'Michael Chen', role: 'student', department: 'Physics', email: 'm.chen@edusync.edu', status: 'online', year: '2nd Year', section: 'b', studentType: 'all' },
+  { id: '88888888-8888-8888-8888-888888888888', name: 'Sarah Connor', role: 'student', department: 'Engineering', email: 's.connor@edusync.edu', status: 'offline', year: '3rd Year', section: 'c', studentType: 'all' },
+  { id: '77777777-7777-7777-7777-777777777777', name: 'Dr. Marie Curie', role: 'hod', department: 'Physics', email: 'm.curie@edusync.edu', status: 'online' },
+  { id: '99999999-9999-9999-9999-999999999999', name: 'John Doe', role: 'student', department: 'Mathematics', email: 'j.doe@edusync.edu', status: 'offline', year: '1st Year', section: 'a', studentType: 'all' },
 ]
 
 const containerVariants: Variants = {
@@ -55,7 +55,7 @@ export default function Directory() {
   const [selectedUser, setSelectedUser] = useState<any | null>(null)
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false)
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false)
-  const [contextMenu, setContextMenu] = useState<{ id: number; x: number; y: number } | null>(null)
+  const [contextMenu, setContextMenu] = useState<{ id: string; x: number; y: number } | null>(null)
   const [editingUser, setEditingUser] = useState<any | null>(null)
   const [newUser, setNewUser] = useState({ name: '', role: 'student', department: '', email: '', year: '1st Year', section: 'a', studentType: 'all' })
   const [mobileFilterStep, setMobileFilterStep] = useState<'role' | 'department' | 'class' | 'section' | 'type'>('role')
@@ -86,7 +86,7 @@ export default function Directory() {
   })
 
   const handleAddUser = () => {
-    const nextId = Math.max(...usersData.map(u => u.id)) + 1
+    const nextId = Math.random().toString(36).substring(7)
     setUsersData(prev => [{ id: nextId, ...newUser, status: 'offline' }, ...prev])
     setIsAddUserModalOpen(false)
     setNewUser({ name: '', role: 'student', department: '', email: '', year: '1st Year', section: 'a', studentType: 'all' })
@@ -98,7 +98,7 @@ export default function Directory() {
     setEditingUser(null)
   }
 
-  const handleDeleteUser = (id: number) => {
+  const handleDeleteUser = (id: string) => {
     setUsersData(prev => prev.filter(u => u.id !== id))
     setSelectedUser(null)
   }

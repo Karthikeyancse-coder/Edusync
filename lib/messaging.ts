@@ -248,7 +248,7 @@ export async function getConversation(userId: string, contactId: string) {
 
   const { data, error } = await supabase
     .from('messages')
-    .select('*, sender:users!sender_id(id,name,role,avatar_color), attachments(*)')
+    .select('*, sender:users!sender_id(id,name,role,avatar_color)')
     .or(`and(sender_id.eq.${userId},receiver_id.eq.${contactId}),and(sender_id.eq.${contactId},receiver_id.eq.${userId})`)
     .order('created_at', { ascending: true })
 
