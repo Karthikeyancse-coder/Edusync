@@ -26,11 +26,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
 
   // Stable UUIDs that match db/seed.sql demo users
+  // Note: principal uses the real UUID already in Supabase
   const DEMO_IDS: Record<string, string> = {
     student:   '11111111-1111-1111-1111-111111111111',
     faculty:   '22222222-2222-2222-2222-222222222222',
     hod:       '33333333-3333-3333-3333-333333333333',
-    principal: '44444444-4444-4444-4444-444444444444',
+    principal: '2717998a-0e09-42cc-8b8b-835a1146b481',  // real UUID from Supabase
   }
 
   const DEMO_PROFILES: Record<string, { name: string; unique_id: string; department: string; role: Role; avatar_color: string }> = {
