@@ -25,11 +25,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const supabase = createClient()
 
-  const DEMO_PROFILES: Record<string, { name: string; unique_id: string; department: string; role: Role }> = {
-    student:   { name: 'Aarav Shah',        unique_id: 'STU-CSE-2024-001', department: 'Computer Science', role: 'student' },
-    faculty:   { name: 'Dr. Sarah Jenkins', unique_id: 'FAC-CSE-001',      department: 'Mathematics',      role: 'faculty' },
-    hod:       { name: 'Prof. Alan Turing', unique_id: 'HOD-CSE-001',      department: 'Computer Science', role: 'hod' },
-    principal: { name: 'Admin Principal',   unique_id: 'PRIN-001',         department: 'Administration',   role: 'principal' },
+  // Stable UUIDs that match db/seed.sql demo users
+  const DEMO_IDS: Record<string, string> = {
+    student:   '11111111-1111-1111-1111-111111111111',
+    faculty:   '22222222-2222-2222-2222-222222222222',
+    hod:       '33333333-3333-3333-3333-333333333333',
+    principal: '44444444-4444-4444-4444-444444444444',
+  }
+
+  const DEMO_PROFILES: Record<string, { name: string; unique_id: string; department: string; role: Role; avatar_color: string }> = {
+    student:   { name: 'Aarav Shah',        unique_id: 'STU-CSE-2024-001', department: 'Computer Science', role: 'student',   avatar_color: '#7C6FFF' },
+    faculty:   { name: 'Dr. Sarah Jenkins', unique_id: 'FAC-CSE-001',      department: 'Computer Science', role: 'faculty',   avatar_color: '#00D4AA' },
+    hod:       { name: 'Prof. Alan Turing', unique_id: 'HOD-CSE-001',      department: 'Computer Science', role: 'hod',       avatar_color: '#FFB800' },
+    principal: { name: 'Admin Principal',   unique_id: 'PRIN-001',         department: 'Administration',   role: 'principal', avatar_color: '#FF4D6D' },
   }
 
   useEffect(() => {
@@ -39,13 +47,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     function buildDemoProfile(demoRole: string): User {
       const demo = DEMO_PROFILES[demoRole]
       return {
-        id: 'demo-123',
+        id: DEMO_IDS[demoRole] ?? 'demo-fallback',
         unique_id: demo?.unique_id ?? `DEMO-${demoRole.toUpperCase()}`,
         name: demo?.name ?? `Demo ${demoRole}`,
         role: (demo?.role ?? demoRole) as Role,
         department: demo?.department ?? 'Computer Science',
+        is_cr: false,
         is_active: true,
-        avatar_color: '#7C6FFF',
+        avatar_color: demo?.avatar_color ?? '#7C6FFF',
         created_at: new Date().toISOString(),
       } as User
     }
@@ -124,16 +133,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const demo = DEMO_PROFILES[role]
     document.cookie = `demo_role=${role}; path=/`
     setProfile({
-      id: 'demo-123',
+      id: DEMO_IDS[role],
       unique_id: demo.unique_id,
       name: demo.name,
       role: role,
       department: demo.department,
+      is_cr: false,
       is_active: true,
-      avatar_color: '#7C6FFF',
+      avatar_color: demo.avatar_color,
       created_at: new Date().toISOString()
     } as User)
-    setUser({ id: 'demo-123', email: `${role}@edusync.edu` } as SupabaseUser)
+    setUser({ id: DEMO_IDS[role], email: `${role}@edusync.edu` } as SupabaseUser)
     router.push('/dashboard')
   }
 

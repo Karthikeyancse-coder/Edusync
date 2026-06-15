@@ -40,7 +40,7 @@ export function useContacts(
     setError(null)
     try {
       const [contactData, unreadData] = await Promise.all([
-        getContacts(userId, role, department, crossDeptEnabled),
+        getContacts(userId, role!, department, crossDeptEnabled),
         getUnreadCounts(userId),
       ])
 
@@ -55,6 +55,7 @@ export function useContacts(
       )
       setUnreadCounts(unreadData)
     } catch (e: any) {
+      console.error('[useContacts] Failed to load contacts:', e)
       setError(e.message)
     } finally {
       setIsLoading(false)
