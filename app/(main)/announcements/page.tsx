@@ -2,60 +2,16 @@
 
 import React from 'react'
 import { motion, Variants, AnimatePresence } from 'framer-motion'
-import { Bell, Calendar, Pin, AlertCircle, FileText, ChevronRight, File as FileIcon, Paperclip, Mic, Send, Edit2, Copy, Trash2 } from 'lucide-react'
+import { Bell, Calendar, Pin, AlertCircle, FileText, ChevronRight, File as FileIcon, Paperclip, Mic, Send, Edit2, Copy, Trash2, CheckCircle, Clock } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
 import { Input } from '@/components/ui/Input'
 import { X } from 'lucide-react'
 import { useAuth } from '@/providers/AuthProvider'
-
-const initialAnnouncements = [
-  {
-    id: 1,
-    title: 'Urgent: Campus Closure Due to Weather',
-    author: 'Admin Principal',
-    role: 'principal',
-    department: null, // null = college-wide (principal only)
-    date: 'Today, 8:00 AM',
-    content: 'Due to severe weather conditions, the campus will be closed for all non-essential personnel today. All classes will be moved online. Please check your course pages for specific instructions from your professors.',
-    type: 'urgent',
-    pinned: true,
-  },
-  {
-    id: 2,
-    title: 'Fall Semester Registration Opening Soon',
-    author: 'Registrar Office',
-    role: 'hod',
-    department: 'Computer Science',
-    date: 'Yesterday, 2:30 PM',
-    content: 'Registration for the upcoming Fall semester will open next Monday at 8:00 AM. Please ensure you have met with your academic advisor and cleared any holds on your account before attempting to register.',
-    type: 'academic',
-    pinned: false,
-  },
-  {
-    id: 3,
-    title: 'Annual Science Fair - Call for Participants',
-    author: 'Dr. Marie Curie',
-    role: 'hod',
-    department: 'Physics',
-    date: 'Oct 12, 10:15 AM',
-    content: 'The Physics and Chemistry departments are proud to announce the Annual Science Fair. We are currently looking for student volunteers and project submissions. The deadline for registration is the end of this month.',
-    type: 'event',
-    pinned: false,
-  },
-  {
-    id: 4,
-    title: 'New Library Hours for Finals Week',
-    author: 'Library Services',
-    role: 'hod',
-    department: 'Administration',
-    date: 'Oct 10, 9:00 AM',
-    content: 'To support students during finals week, the main library will be open 24/7 starting next Sunday. Coffee and snacks will be provided in the lobby during late night hours (10 PM - 2 AM).',
-    type: 'info',
-    pinned: false,
-  }
-]
+import { useAnnouncements } from '@/hooks/useAnnouncements'
+import { getAcknowledgmentList } from '@/lib/announcements'
+import Link from 'next/link'
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -70,37 +26,119 @@ const itemVariants: Variants = {
   show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
 }
 
-export default function Announcements() {
-  const { role, department } = useAuth()
-  const canPost = role === 'principal' || role === 'hod'
-  const [announcementsData, setAnnouncementsData] = React.useState(initialAnnouncements)
-  const [expandedIds, setExpandedIds] = React.useState<Set<number>>(new Set())
+function AcknowledgeButton({ 
+  onAcknowledge, 
+  hasAcknowledged 
+}: { 
+  onAcknowledge: () => Promise<void>, 
+  hasAcknowledged: boolean 
+}) {
+  const [progress, setProgress] = React.useState(0)
+  const [isDone, setIsDone] = React.useState(hasAcknowledged)
+  const [error, setError] = React.useState('')
+  const [isLoading, setIsLoading] = React.useState(false)
 
-  // Filter: principal sees all; everyone else sees principal posts (dept=null)
-  // + HOD posts only if dept matches their own dept
-  const visibleAnnouncements = React.useMemo(() => {
-    return announcementsData.filter(a => {
-      // Principal posts (dept=null) are visible to everyone
-      if (!a.department) return true
-      // Principal user sees everything
-      if (role === 'principal') return true
-      // HOD/Faculty/Student sees only their dept's announcements
-      return a.department === department
-    })
-  }, [announcementsData, role, department])
+  React.useEffect(() => {
+    if (isDone || hasAcknowledged) return
+    let start = Date.now()
+    const duration = 3000
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - start
+      const p = Math.min((elapsed / duration) * 100, 100)
+      setProgress(p)
+      if (p >= 100) {
+        clearInterval(interval)
+      }
+    }, 50)
+    return () => clearInterval(interval)
+  }, [isDone, hasAcknowledged])
+
+  if (hasAcknowledged || isDone) {
+    return (
+      <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium text-sm">
+        <CheckCircle size={16} />
+        Acknowledged
+      </div>
+    )
+  }
+
+  const handleAck = async () => {
+    if (progress < 100) return
+    setIsLoading(true)
+    setError('')
+    try {
+      await onAcknowledge()
+      setIsDone(true)
+    } catch (err: any) {
+      setError(err.message || 'Error acknowledging')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-1 items-end sm:items-start">
+      <Button 
+        onClick={handleAck} 
+        disabled={progress < 100 || isLoading}
+        variant="outline"
+        className="relative overflow-hidden group w-full sm:w-auto border-slate-200 dark:border-slate-700"
+      >
+        <div className="absolute inset-0 bg-indigo-50 dark:bg-indigo-900/20" style={{ width: `${progress}%`, transition: 'width 0.1s linear' }} />
+        <span className="relative z-10 flex items-center gap-2">
+          {progress < 100 ? <Clock size={16} className="text-slate-400 animate-pulse" /> : <CheckCircle size={16} className="text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />}
+          {progress < 100 ? 'Reading...' : isLoading ? 'Acknowledging...' : 'Acknowledge'}
+        </span>
+      </Button>
+      {error && <span className="text-xs text-red-500">{error}</span>}
+    </div>
+  )
+}
+
+export default function Announcements() {
+  const { user, role, department } = useAuth()
+  const canPost = role === 'principal' || role === 'hod' || role === 'faculty'
+  
+  const { announcements, create, update, remove, view, acknowledge } = useAnnouncements(user?.id, role as any, department)
+  
+  const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set())
   const [isPostModalOpen, setIsPostModalOpen] = React.useState(false)
+  const [editingId, setEditingId] = React.useState<string | null>(null)
+  const [contextMenu, setContextMenu] = React.useState<{ id: string, x: number, y: number, announcement: any } | null>(null)
+  const [postError, setPostError] = React.useState('')
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  // Acknowledgment List Modal state
+  const [ackModalId, setAckModalId] = React.useState<string | null>(null)
+  const [ackList, setAckList] = React.useState<any[]>([])
+  const [loadingAcks, setLoadingAcks] = React.useState(false)
+
+  // Dialog state for custom alerts/confirms
+  const [dialog, setDialog] = React.useState<{
+    isOpen: boolean,
+    title: string,
+    message: string,
+    type: 'alert' | 'confirm',
+    onConfirm?: () => void
+  }>({ isOpen: false, title: '', message: '', type: 'alert' })
+
+  const showAlert = (title: string, message: string) => {
+    setDialog({ isOpen: true, title, message, type: 'alert' })
+  }
+
+  const showConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setDialog({ isOpen: true, title, message, type: 'confirm', onConfirm })
+  }
+
+  // New announcement state
   const [newAnnouncement, setNewAnnouncement] = React.useState({
     title: '',
     content: '',
     type: 'info',
     pinned: false,
-    file: null as any,
-    audiences: ['All'] as string[]
+    target_role: 'All', // 'All', 'student', 'faculty', 'hod'
+    target_department: 'All' // 'All', 'Computer Science', etc.
   })
-  const fileInputRef = React.useRef<HTMLInputElement>(null)
-  const [isRecording, setIsRecording] = React.useState(false)
-  const [editingId, setEditingId] = React.useState<number | null>(null)
-  const [contextMenu, setContextMenu] = React.useState<{ id: number, x: number, y: number, announcement: any } | null>(null)
 
   React.useEffect(() => {
     const handleGlobalClick = () => setContextMenu(null)
@@ -110,6 +148,9 @@ export default function Announcements() {
 
   const handleContextMenu = (e: React.MouseEvent, announcement: any) => {
     e.preventDefault()
+    // Only principal or creator can edit/delete
+    if (role !== 'principal' && announcement.created_by !== user?.id) return
+
     setContextMenu({
       id: announcement.id,
       x: e.clientX,
@@ -118,55 +159,71 @@ export default function Announcements() {
     })
   }
 
-  const handlePost = () => {
-    if (!newAnnouncement.title || (!newAnnouncement.content && !isRecording && !newAnnouncement.file)) return
+  const handlePost = async () => {
+    if (!newAnnouncement.title || !newAnnouncement.content) return
+    setIsSubmitting(true)
+    setPostError('')
     
-    if (editingId !== null) {
-      setAnnouncementsData(prev => prev.map(a => 
-        a.id === editingId ? { ...a, title: newAnnouncement.title, content: newAnnouncement.content, type: newAnnouncement.type, pinned: newAnnouncement.pinned } : a
-      ))
-      setEditingId(null)
-    } else {
-      const nextId = Math.max(0, ...announcementsData.map(a => a.id)) + 1
-      const announcement = {
-        id: nextId,
+    try {
+      const payload = {
         title: newAnnouncement.title,
-        author: role === 'principal' ? 'Admin Principal' : `HOD — ${department}`,
-        role: role as string,
-        // HOD posts are dept-scoped; Principal posts are college-wide (null)
-        department: role === 'hod' ? department : null,
-        date: 'Just now',
         content: newAnnouncement.content,
-        type: newAnnouncement.type,
-        pinned: newAnnouncement.pinned,
+        type: newAnnouncement.type as 'urgent' | 'event' | 'academic' | 'info',
+        is_pinned: newAnnouncement.pinned,
+        target_role: role === 'faculty' ? 'student' : (newAnnouncement.target_role === 'All' ? null : newAnnouncement.target_role),
+        target_department: role === 'principal' ? (newAnnouncement.target_department === 'All' ? null : newAnnouncement.target_department) : department
       }
-      setAnnouncementsData(prev => [announcement, ...prev])
+
+      if (editingId) {
+        await update(editingId, payload)
+      } else {
+        await create(payload)
+      }
+      
+      setIsPostModalOpen(false)
+      setNewAnnouncement({ title: '', content: '', type: 'info', pinned: false, target_role: 'All', target_department: 'All' })
+    } catch (err: any) {
+      setPostError(err.message)
+    } finally {
+      setIsSubmitting(false)
     }
-    
-    setIsPostModalOpen(false)
-    setNewAnnouncement({ title: '', content: '', type: 'info', pinned: false, file: null, audiences: ['All'] })
-    setIsRecording(false)
   }
 
-  const toggleAudience = (aud: string) => {
-    setNewAnnouncement(prev => {
-      let next = [...prev.audiences]
-      if (aud === 'All') return { ...prev, audiences: ['All'] }
-      next = next.filter(a => a !== 'All')
-      if (next.includes(aud)) next = next.filter(a => a !== aud)
-      else next.push(aud)
-      if (next.length === 0) next = ['All']
-      return { ...prev, audiences: next }
-    })
-  }
-
-  const toggleExpand = (id: number) => {
+  const toggleExpand = (id: string) => {
     setExpandedIds(prev => {
       const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+        // Log view when expanding for the first time
+        const ann = announcements.find(a => a.id === id)
+        if (ann && !ann._hasViewed) {
+          view(id)
+        }
+      }
       return next
     })
+  }
+
+  const fetchAcks = async (announcementId: string) => {
+    setAckModalId(announcementId)
+    setLoadingAcks(true)
+    try {
+      const data = await getAcknowledgmentList(announcementId)
+      setAckList(data || [])
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoadingAcks(false)
+    }
+  }
+
+  const getTargetLabel = (announcement: any) => {
+    if (!announcement.target_department && !announcement.target_role) return 'College-wide'
+    if (!announcement.target_department && announcement.target_role) return `All ${announcement.target_role}s`
+    if (announcement.target_department && !announcement.target_role) return announcement.target_department
+    return `${announcement.target_department} - ${announcement.target_role}s`
   }
 
   return (
@@ -189,14 +246,19 @@ export default function Announcements() {
             <button 
               className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 flex items-center gap-2"
               onClick={() => {
+                if (contextMenu.id.startsWith('fallback-')) {
+                  showAlert('Action Denied', 'This is an offline sample announcement and cannot be edited.')
+                  setContextMenu(null)
+                  return
+                }
                 const a = contextMenu.announcement
                 setNewAnnouncement({
                   title: a.title,
                   content: a.content,
-                  type: a.type,
-                  pinned: a.pinned || false,
-                  file: null,
-                  audiences: ['All']
+                  type: a.type || 'info',
+                  pinned: a.is_pinned || false,
+                  target_role: a.target_role || 'All',
+                  target_department: a.target_department || 'All'
                 })
                 setEditingId(a.id)
                 setIsPostModalOpen(true)
@@ -208,29 +270,41 @@ export default function Announcements() {
             </button>
             <button 
               className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 flex items-center gap-2"
-              onClick={() => {
-                setAnnouncementsData(prev => prev.map(a => a.id === contextMenu.id ? { ...a, pinned: !a.pinned } : a))
+              onClick={async () => {
+                if (contextMenu.id.startsWith('fallback-')) {
+                  showAlert('Action Denied', 'This is an offline sample announcement and cannot be modified.')
+                  setContextMenu(null)
+                  return
+                }
+                try {
+                  await update(contextMenu.id, { is_pinned: !contextMenu.announcement.is_pinned })
+                } catch (e: any) {
+                  showAlert('Error', "Error updating pin status: " + e.message)
+                }
                 setContextMenu(null)
               }}
             >
               <Pin size={16} className="text-orange-500" />
-              {contextMenu.announcement.pinned ? 'Unpin' : 'Pin to Top'}
-            </button>
-            <button 
-              className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 flex items-center gap-2"
-              onClick={() => {
-                navigator.clipboard.writeText(contextMenu.announcement.content)
-                setContextMenu(null)
-              }}
-            >
-              <Copy size={16} className="text-slate-500" />
-              Copy Text
+              {contextMenu.announcement.is_pinned ? 'Unpin' : 'Pin to Top'}
             </button>
             <div className="h-px bg-slate-200 dark:bg-slate-700 my-1"></div>
             <button 
               className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center gap-2"
               onClick={() => {
-                setAnnouncementsData(prev => prev.filter(a => a.id !== contextMenu.id))
+                if (contextMenu.id.startsWith('fallback-')) {
+                  showAlert('Action Denied', 'This is an offline sample announcement and cannot be deleted.')
+                  setContextMenu(null)
+                  return
+                }
+                
+                showConfirm('Delete Announcement', 'Are you sure you want to delete this announcement? This action cannot be undone.', async () => {
+                  try {
+                    await remove(contextMenu.id)
+                  } catch (e: any) {
+                    showAlert('Error', "Error deleting: " + e.message)
+                  }
+                })
+                
                 setContextMenu(null)
               }}
             >
@@ -272,16 +346,17 @@ export default function Announcements() {
         {/* Vertical Line for timeline effect (Desktop) */}
         <div className="hidden md:block absolute left-8 top-8 bottom-8 w-px bg-slate-200 dark:bg-slate-800" />
 
-        {visibleAnnouncements.map((announcement) => {
+        {announcements.map((announcement) => {
           const isUrgent = announcement.type === 'urgent'
           const Icon = isUrgent ? AlertCircle : announcement.type === 'event' ? Calendar : FileText
           const isExpanded = expandedIds.has(announcement.id)
+          const authorName = announcement.author?.name || 'Unknown'
           
           return (
             <motion.div key={announcement.id} variants={itemVariants} className="relative md:pl-24">
               {/* Timeline dot */}
               <div className={`hidden md:flex absolute left-5 top-8 w-6 h-6 rounded-full border-4 border-slate-50 dark:border-slate-900 items-center justify-center z-10 ${
-                isUrgent ? 'bg-red-500' : announcement.pinned ? 'bg-amber-500' : 'bg-indigo-500'
+                isUrgent ? 'bg-red-500' : announcement.is_pinned ? 'bg-amber-500' : 'bg-indigo-500'
               }`}>
                 <div className="w-1.5 h-1.5 bg-white rounded-full" />
               </div>
@@ -298,33 +373,26 @@ export default function Announcements() {
 
                 <CardContent className="p-6">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-4 flex-1">
                       {/* Avatar */}
-                      <Avatar name={announcement.author} role={announcement.role as any} size="md" />
+                      <Avatar name={authorName} role={announcement.author?.role as any || 'faculty'} size="md" />
                       
                       {/* Content */}
-                      <div>
+                      <div className="flex-1">
                         <div className="flex items-center flex-wrap gap-2 mb-1">
                           <span className="text-sm font-semibold text-slate-900 dark:text-white">
-                            {announcement.author}
+                            {authorName}
                           </span>
                           <span className="text-xs text-slate-500 dark:text-slate-400">
-                            • {announcement.date}
+                            • {new Date(announcement.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
                           </span>
-                          {announcement.department && (
-                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300">
-                              {announcement.department}
-                            </span>
-                          )}
-                          {!announcement.department && announcement.role === 'principal' && (
-                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-300">
-                              College-wide
-                            </span>
-                          )}
+                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${!announcement.target_department && !announcement.target_role ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-300' : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300'}`}>
+                            {getTargetLabel(announcement)}
+                          </span>
                         </div>
                         
                         <div className="flex items-center gap-2 mb-3">
-                          {announcement.pinned && (
+                          {announcement.is_pinned && (
                             <Pin size={14} className="text-amber-500 fill-amber-500 shrink-0" />
                           )}
                           <h2 className={`text-lg font-bold leading-tight ${isUrgent ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-white'}`}>
@@ -335,10 +403,47 @@ export default function Announcements() {
                         <p className={`text-slate-600 dark:text-slate-300 text-sm leading-relaxed ${isExpanded ? '' : 'line-clamp-2'}`}>
                           {announcement.content}
                         </p>
+
+                        {/* Expanded details (Acknowledgments) */}
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div 
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4"
+                            >
+                              <AcknowledgeButton 
+                                onAcknowledge={() => acknowledge(announcement.id)} 
+                                hasAcknowledged={announcement._hasAcknowledged || false} 
+                              />
+
+                              {/* Progress bar for creator / admins */}
+                              {(role === 'principal' || role === 'hod' || announcement.created_by === user?.id) && (
+                                <div 
+                                  className="flex-1 w-full max-w-xs cursor-pointer group/progress"
+                                  onClick={() => fetchAcks(announcement.id)}
+                                >
+                                  <div className="flex justify-between text-xs text-slate-500 mb-1 group-hover/progress:text-indigo-600 transition-colors">
+                                    <span>Acknowledgments</span>
+                                    <span>{announcement._acksCount || 0} / {announcement.total_targets || 0}</span>
+                                  </div>
+                                  <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-emerald-500 transition-all duration-500" 
+                                      style={{ width: `${Math.min(((announcement._acksCount || 0) / Math.max(announcement.total_targets || 1, 1)) * 100, 100)}%` }} 
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
                       </div>
                     </div>
 
-                    {/* Actions */}
+                    {/* Expand Toggle Action */}
                     <div className="flex items-center sm:flex-col gap-2 shrink-0">
                       <Button onClick={() => toggleExpand(announcement.id)} variant="ghost" className="w-full sm:w-auto justify-start sm:justify-center text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
                         {isExpanded ? 'Show Less' : 'Read More'}
@@ -360,16 +465,24 @@ export default function Announcements() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-md w-full relative"
+              className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-md w-full relative my-8"
             >
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Post Announcement</h3>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                  {editingId ? 'Edit Announcement' : 'Post Announcement'}
+                </h3>
                 <Button variant="ghost" size="icon" onClick={() => setIsPostModalOpen(false)} className="-mr-2 -mt-2">
                   <X size={20} />
                 </Button>
               </div>
               
               <div className="space-y-4 mb-6">
+                {postError && (
+                  <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm flex items-start gap-2">
+                    <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                    <span>{postError}</span>
+                  </div>
+                )}
                 <div>
                   <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Title <span className="text-red-500">*</span></label>
                   <Input value={newAnnouncement.title} onChange={e => setNewAnnouncement(prev => ({ ...prev, title: e.target.value }))} placeholder="Enter title..." />
@@ -387,120 +500,59 @@ export default function Announcements() {
                     <option value="urgent">Urgent</option>
                   </select>
                 </div>
-                {/* Target Audience */}
-                <div>
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">Target Audience</label>
-                  <div className="flex flex-wrap gap-4">
-                    {['All', 'Student', 'Faculty', 'HOD'].map(role => (
-                      <label key={role} className="flex items-center gap-2 cursor-pointer">
-                        <input 
-                          type="checkbox"
-                          checked={newAnnouncement.audiences.includes(role)}
-                          onChange={() => toggleAudience(role)}
-                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <span className="text-sm text-slate-700 dark:text-slate-300">{role}</span>
-                      </label>
-                    ))}
+
+                {/* Target Department (Only for Principal) */}
+                {role === 'principal' && (
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Target Department</label>
+                    <select 
+                      value={newAnnouncement.target_department} 
+                      onChange={e => setNewAnnouncement(prev => ({ ...prev, target_department: e.target.value }))}
+                      className="w-full h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950"
+                    >
+                      <option value="All">All Departments</option>
+                      <option value="Computer Science">Computer Science</option>
+                      <option value="Physics">Physics</option>
+                      <option value="Mathematics">Mathematics</option>
+                      <option value="Engineering">Engineering</option>
+                    </select>
                   </div>
-                </div>
+                )}
+
+                {/* Target Role */}
+                {role !== 'faculty' && (
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Target Role</label>
+                    <select 
+                      value={newAnnouncement.target_role} 
+                      onChange={e => setNewAnnouncement(prev => ({ ...prev, target_role: e.target.value }))}
+                      className="w-full h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950"
+                    >
+                      <option value="All">All Roles</option>
+                      <option value="student">Student</option>
+                      <option value="faculty">Faculty</option>
+                      {role === 'principal' && <option value="hod">HOD</option>}
+                    </select>
+                  </div>
+                )}
 
                 {/* Content Chat Input */}
                 <div>
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">Content & Attachments <span className="text-red-500">*</span></label>
-                  
-                  {newAnnouncement.file && (
-                    <div className="mb-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-2 flex items-center gap-3 shadow-sm max-w-full relative inline-flex">
-                      <div className="w-10 h-10 rounded-md bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center shrink-0">
-                        <FileIcon size={20} className="text-indigo-600 dark:text-indigo-400" />
-                      </div>
-                      <div className="flex-1 min-w-0 pr-6">
-                        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">
-                          {newAnnouncement.file.name}
-                        </p>
-                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Attached File</p>
-                      </div>
-                      <button 
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); setNewAnnouncement(prev => ({ ...prev, file: null })) }}
-                        className="absolute top-2 right-2 text-slate-400 hover:text-red-500 bg-white dark:bg-slate-800 rounded-full p-0.5 shadow-sm border border-slate-100 dark:border-slate-700"
-                      >
-                        <X size={12} />
-                      </button>
-                    </div>
-                  )}
-
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">Content <span className="text-red-500">*</span></label>
                   <div className="flex items-end gap-2 w-full">
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                          setNewAnnouncement(prev => ({ ...prev, file: e.target.files![0] }))
-                        }
-                      }}
-                      className="hidden" 
-                    />
-                    <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl pl-3 pr-4 py-3 flex items-end focus-within:ring-2 focus-within:ring-indigo-500/50 transition-all shadow-sm w-full">
-                      <div className="flex items-center pb-0.5 mr-1">
-                        <Button 
-                          type="button"
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => fileInputRef.current?.click()}
-                          className="shrink-0 text-slate-400 hover:text-indigo-600 rounded-full h-8 w-8"
-                        >
-                          <Paperclip size={18} />
-                        </Button>
-                      </div>
-                      {isRecording ? (
-                        <motion.div 
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          className="flex-1 min-w-0 flex items-center gap-2 md:gap-3 text-red-500 font-medium py-1.5 pl-2"
-                        >
-                          <motion.div 
-                            animate={{ scale: [1, 1.2, 1], opacity: [1, 0.5, 1] }}
-                            transition={{ repeat: Infinity, duration: 1.5 }}
-                            className="w-2.5 h-2.5 md:w-3 md:h-3 shrink-0 bg-red-500 rounded-full"
-                          />
-                          <span className="truncate text-sm md:text-[15px]">Recording... 0:03</span>
-                        </motion.div>
-                      ) : (
-                        <textarea
-                          value={newAnnouncement.content}
-                          onChange={e => {
-                            setNewAnnouncement(prev => ({ ...prev, content: e.target.value }))
-                            e.target.style.height = 'auto'
-                            e.target.style.height = `${e.target.scrollHeight}px`
-                          }}
-                          rows={3}
-                          className="w-full bg-transparent text-[15px] focus-visible:outline-none resize-none py-1.5 dark:text-white"
-                          placeholder="Type announcement details..."
-                          style={{ minHeight: '80px', maxHeight: '240px' }}
-                        />
-                      )}
-                      <div className="flex items-center gap-1 pb-0.5 pl-2 shrink-0">
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => setIsRecording(!isRecording)}
-                          className={`rounded-full h-8 w-8 transition-colors ${isRecording ? 'text-red-500 bg-red-50 dark:bg-red-500/10' : 'text-slate-400 hover:text-indigo-600'}`}
-                        >
-                          <Mic size={18} />
-                        </Button>
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={handlePost}
-                          disabled={!newAnnouncement.title || (!newAnnouncement.content && !isRecording && !newAnnouncement.file)}
-                          className="text-white bg-indigo-600 hover:bg-indigo-700 h-8 w-8 rounded-full disabled:opacity-50 transition-colors"
-                        >
-                          <Send size={14} className="ml-0.5" />
-                        </Button>
-                      </div>
+                    <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl pl-4 pr-2 py-3 focus-within:ring-2 focus-within:ring-indigo-500/50 transition-all shadow-sm w-full">
+                      <textarea
+                        value={newAnnouncement.content}
+                        onChange={e => {
+                          setNewAnnouncement(prev => ({ ...prev, content: e.target.value }))
+                          e.target.style.height = 'auto'
+                          e.target.style.height = `${e.target.scrollHeight}px`
+                        }}
+                        rows={4}
+                        className="w-full bg-transparent text-[15px] focus-visible:outline-none resize-none dark:text-white"
+                        placeholder="Type announcement details..."
+                        style={{ minHeight: '80px', maxHeight: '240px' }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -511,10 +563,92 @@ export default function Announcements() {
                     id="pinned"
                     checked={newAnnouncement.pinned}
                     onChange={e => setNewAnnouncement(prev => ({ ...prev, pinned: e.target.checked }))}
-                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4"
                   />
-                  <label htmlFor="pinned" className="text-sm font-medium text-slate-700 dark:text-slate-300">Pin to top of timeline</label>
+                  <label htmlFor="pinned" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">Pin to top of timeline</label>
                 </div>
+
+                <div className="pt-4 flex justify-end">
+                  <Button onClick={handlePost} disabled={!newAnnouncement.title || !newAnnouncement.content || isSubmitting} className="bg-indigo-600 text-white w-full sm:w-auto">
+                    {isSubmitting ? 'Posting...' : editingId ? 'Update Announcement' : 'Post Announcement'}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Acknowledgment List Modal */}
+      <AnimatePresence>
+        {ackModalId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full relative max-h-[80vh] flex flex-col"
+            >
+              <div className="flex justify-between items-center mb-4 shrink-0">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Acknowledged By</h3>
+                <Button variant="ghost" size="icon" onClick={() => setAckModalId(null)} className="-mr-2">
+                  <X size={20} />
+                </Button>
+              </div>
+              <div className="overflow-y-auto flex-1 pr-2 space-y-3">
+                {loadingAcks ? (
+                  <p className="text-slate-500 text-center py-4">Loading...</p>
+                ) : ackList.length === 0 ? (
+                  <p className="text-slate-500 text-center py-4 text-sm">No acknowledgments yet.</p>
+                ) : (
+                  ackList.map((ack, idx) => (
+                    <Link key={idx} href={`/profile/${ack.user.unique_id}`} className="flex items-center gap-3 p-2 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-xl transition-colors">
+                      <Avatar name={ack.user.name} size="sm" />
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900 dark:text-white">{ack.user.name}</p>
+                        <p className="text-xs text-slate-500">{new Date(ack.acknowledged_at).toLocaleString()}</p>
+                      </div>
+                    </Link>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Custom Dialog Modal */}
+      <AnimatePresence>
+        {dialog.isOpen && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 max-w-sm w-full relative"
+            >
+              <div className="flex items-center gap-3 mb-3 text-slate-900 dark:text-white">
+                <AlertCircle className={dialog.type === 'alert' && dialog.title === 'Error' ? 'text-red-500' : 'text-indigo-500'} size={24} />
+                <h3 className="text-lg font-bold">{dialog.title}</h3>
+              </div>
+              <p className="text-slate-600 dark:text-slate-300 text-sm mb-6 leading-relaxed">
+                {dialog.message}
+              </p>
+              <div className="flex items-center justify-end gap-3">
+                {dialog.type === 'confirm' && (
+                  <Button variant="ghost" onClick={() => setDialog(prev => ({ ...prev, isOpen: false }))}>
+                    Cancel
+                  </Button>
+                )}
+                <Button 
+                  onClick={() => {
+                    if (dialog.type === 'confirm' && dialog.onConfirm) {
+                      dialog.onConfirm()
+                    }
+                    setDialog(prev => ({ ...prev, isOpen: false }))
+                  }}
+                  className={dialog.type === 'confirm' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}
+                >
+                  {dialog.type === 'confirm' ? 'Delete' : 'OK'}
+                </Button>
               </div>
             </motion.div>
           </div>
