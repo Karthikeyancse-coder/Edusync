@@ -86,7 +86,7 @@ export async function getContacts(
 
   const { data: users, error } = await supabase
     .from('users')
-    .select('id, name, role, department, avatar_color, unique_id, last_active_at, is_active')
+    .select('id, name, role, department, avatar_color, unique_id, is_active')
     .neq('id', userId)
 
   if (error) {

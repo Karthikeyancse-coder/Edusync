@@ -10,6 +10,7 @@ import {
   Building2, UserCheck, Clock, TrendingUp, Award, X,
   CheckSquare, AlertCircle, Search, Crown, Menu
 } from 'lucide-react'
+import { Logo } from '@/components/ui/Logo'
 
 /* ─────────────── helpers ─────────────── */
 function useCountUp(target: number, duration = 2000, start = false) {
@@ -43,7 +44,7 @@ function CountCard({ value, suffix = '', label, start }: { value: number; suffix
 /* ─────────────── data ─────────────── */
 const features = [
   { icon: MessageSquare, color: 'from-indigo-500 to-violet-600', title: 'Smart Messaging', desc: 'Real-time role-based chat with edit, delete, and WhatsApp-style inbox sorting. Features a 3-tier approval chain for student-to-admin messages.' },
-  { icon: Bell, color: 'from-amber-500 to-orange-600', title: 'Announcements', desc: 'HODs post dept-scoped notices; Principal broadcasts college-wide. Students get real-time notifications for every update.' },
+  { icon: Bell, color: 'from-amber-500 to-orange-600', title: 'Announcements', desc: 'Role-scoped broadcasts with real-time sync, 3-second read acknowledgment tracking, and dynamic audience targeting.' },
   { icon: ClipboardList, color: 'from-emerald-500 to-teal-600', title: 'Assignments', desc: 'Faculty publish assignments with deadlines. Students submit files, track status, and receive graded results with feedback.' },
   { icon: BarChart2, color: 'from-blue-500 to-cyan-600', title: 'Marks & Grades', desc: 'Enter marks across 9 exam types. Publish when ready — students see results instantly. Full subject-wise analytics.' },
   { icon: BookOpen, color: 'from-pink-500 to-rose-600', title: 'Attendance', desc: 'Faculty mark attendance per subject. Students track their percentage with colour-coded warnings below 75%.' },
@@ -112,12 +113,8 @@ export default function LandingPage() {
       {/* ── Nav ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 backdrop-blur-xl bg-[#060611]/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 font-black text-xl select-none">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-              <GraduationCap size={18} className="text-white" />
-            </div>
-            <span className="text-white">Edu<span className="text-indigo-400">Sync</span></span>
+          <Link href="/" className="block select-none">
+            <Logo size="sm" forceDarkText />
           </Link>
 
           {/* Desktop links */}
@@ -584,21 +581,48 @@ export default function LandingPage() {
               View on GitHub
             </a>
           </motion.div>
+
+          {/* Creator Badge */}
+          <motion.div {...fadeUp(0.4)} className="mt-28 flex justify-center pb-10">
+            <div className="flex flex-col items-center gap-6">
+              <span className="text-sm uppercase tracking-[0.3em] text-slate-500 font-bold">Created By</span>
+              
+              <a href="https://github.com/Karthikeyancse-coder" target="_blank" rel="noopener noreferrer" className="relative group cursor-pointer block rounded-full">
+                
+                {/* Blurred Ambient Glow */}
+                <div className="absolute -inset-1 blur-2xl opacity-60 group-hover:opacity-100 transition-opacity duration-500 rounded-full overflow-hidden">
+                  <div className="absolute top-1/2 left-1/2 w-[800px] h-[800px] -translate-x-1/2 -translate-y-1/2 animate-[spin_3s_linear_infinite] bg-[conic-gradient(from_0deg,theme(colors.red.500),theme(colors.fuchsia.500),theme(colors.blue.500),theme(colors.emerald.500),theme(colors.amber.500),theme(colors.red.500))]" />
+                </div>
+
+                {/* Hard RGB Border */}
+                <div className="relative p-[3px] rounded-full overflow-hidden transition-transform duration-300 group-hover:scale-[1.02]">
+                  {/* Spinning Gradient */}
+                  <div className="absolute top-1/2 left-1/2 w-[800px] h-[800px] -translate-x-1/2 -translate-y-1/2 animate-[spin_3s_linear_infinite] bg-[conic-gradient(from_0deg,theme(colors.red.500),theme(colors.fuchsia.500),theme(colors.blue.500),theme(colors.emerald.500),theme(colors.amber.500),theme(colors.red.500))]" />
+                  
+                  {/* Black Core */}
+                  <div className="relative flex items-center gap-6 bg-[#060611] rounded-full pr-12 pl-3 py-3">
+                    <img src="https://github.com/Karthikeyancse-coder.png" alt="SK" className="w-20 h-20 rounded-full object-cover z-10 shadow-[0_0_20px_rgba(0,0,0,0.8)]" />
+                    <span className="text-4xl font-black text-white tracking-widest drop-shadow-md z-10">SK</span>
+                  </div>
+                </div>
+
+              </a>
+            </div>
+          </motion.div>
         </div>
       </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-white/5 py-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 font-black text-lg">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
-              <GraduationCap size={15} className="text-white" />
-            </div>
-            <span>Edu<span className="text-indigo-400">Sync</span></span>
+      <footer className="border-t border-white/5 py-10 mt-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4">
+          <Logo size="sm" forceDarkText />
+          
+          <div className="flex flex-col items-center gap-3">
+            <p className="text-xs text-slate-600 text-center">
+              Built for engineering colleges · Next.js + Supabase · Role-based access control
+            </p>
           </div>
-          <p className="text-xs text-slate-600 text-center">
-            Built for engineering colleges · Next.js + Supabase · Role-based access control
-          </p>
+
           <div className="flex items-center gap-4 text-xs text-slate-600">
             <Link href="/login" className="hover:text-slate-400 transition-colors">Sign In</Link>
             <a href="https://github.com/Karthikeyancse-coder/Edusync" target="_blank" rel="noopener noreferrer" className="hover:text-slate-400 transition-colors">GitHub</a>

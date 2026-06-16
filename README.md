@@ -135,7 +135,7 @@ Every user gets a **unique EduSync ID**, a verified role, and a dashboard tuned 
 <td align="center"><br/>📢<br/><b>Announcements</b><br/><br/></td>
 <td>
   Role-scoped broadcasts (Principal → All · HOD → Dept · Faculty → Class)<br/>
-  Pinnable announcements with rich metadata
+  Real-time sync · 3-sec acknowledgment timer with progress tracking · Duplicate & Limit prevention
 </td>
 </tr>
 <tr>
@@ -293,6 +293,7 @@ npm run dev
 ✅  Marks, attendance, timetable
 ✅  Mobile bottom navigation
 ✅  Real-time messages & WhatsApp-style inbox sorting
+✅  Advanced Announcements (Role-based targeting, 3s ack timer, real-time sync)
 
 ⬜  Push notifications (PWA)
 ⬜  File & document sharing in chat
