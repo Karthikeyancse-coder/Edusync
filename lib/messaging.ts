@@ -88,17 +88,56 @@ export async function getContacts(
     .from('users')
     .select('id, name, role, department, avatar_color, unique_id, is_active')
     .neq('id', userId)
-    .order('name')
 
   if (error) {
     console.error('[messaging] getContacts error:', error)
     throw error
   }
 
+  // Fetch recent messages for sorting and preview
+  const { data: messages, error: msgError } = await supabase
+    .from('messages')
+    .select('content, created_at, sender_id, receiver_id')
+    .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+    .order('created_at', { ascending: false })
+
+  const latestMsgs = new Map<string, { text: string, time: string, timestamp: number }>()
+  if (!msgError && messages) {
+    for (const msg of messages) {
+      const contactId = msg.sender_id === userId ? msg.receiver_id : msg.sender_id
+      if (contactId && !latestMsgs.has(contactId)) {
+        latestMsgs.set(contactId, {
+          text: msg.content,
+          time: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          timestamp: new Date(msg.created_at).getTime()
+        })
+      }
+    }
+  }
+
   // Filter by messaging rules
-  return (users ?? []).filter(u =>
+  let allowedUsers = (users ?? []).filter(u =>
     canMessage(role, department, u.role as Role, u.department ?? null, crossDeptEnabled)
   )
+
+  const enrichedUsers = allowedUsers.map(u => {
+    const msgData = latestMsgs.get(u.id)
+    return {
+      ...u,
+      lastMessage: msgData?.text,
+      lastMessageTime: msgData?.time,
+      _timestamp: msgData?.timestamp || 0
+    }
+  })
+
+  enrichedUsers.sort((a, b) => {
+    if (a._timestamp !== b._timestamp) {
+      return b._timestamp - a._timestamp
+    }
+    return a.name.localeCompare(b.name)
+  })
+
+  return enrichedUsers
 }
 
 // ─── Send a message ───────────────────────────────────────────────────────────
@@ -338,12 +377,18 @@ export function subscribeToMessages(
   onUpdate: (msg: unknown) => void
 ) {
   const supabase = createClient()
+  const channelName = `messages-realtime:${userId}:${Math.random().toString(36).substring(7)}`
 
   return supabase
-    .channel(`messages-realtime:${userId}`)
+    .channel(channelName)
     .on(
       'postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${userId}` },
+      (payload) => onNew(payload.new)
+    )
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'messages', filter: `sender_id=eq.${userId}` },
       (payload) => onNew(payload.new)
     )
     .on(

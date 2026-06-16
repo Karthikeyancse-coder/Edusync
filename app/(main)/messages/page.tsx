@@ -545,7 +545,7 @@ export default function Messages() {
                           {pinnedChatIds.includes(contact.id) && <Pin size={12} className="text-slate-400" />}
                           {mutedContacts.includes(contact.id) && <BellOff size={11} className="text-slate-400" />}
                         </h3>
-                        <span className="text-xs text-slate-500">{contact.time}</span>
+                        <span className="text-xs text-slate-500">{contact.lastMessageTime}</span>
                       </div>
                       <p className={`text-sm truncate mt-0.5 ${contact.unread > 0 ? 'text-slate-900 dark:text-white font-medium' : 'text-slate-500 dark:text-slate-400'}`}>
                         {contact.lastMessage || 'No recent messages'}

@@ -21,9 +21,9 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-40">
       {/* Logo */}
-      <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
+      <Link href="/" className="block px-6 py-5 border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
         <Logo size="sm" />
-      </div>
+      </Link>
 
       {/* Nav Items */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">

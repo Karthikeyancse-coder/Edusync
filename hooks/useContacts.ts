@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { getContacts, getUnreadCounts, escalateStalePendingMessages } from '@/lib/messaging'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { getContacts, getUnreadCounts, escalateStalePendingMessages, subscribeToMessages } from '@/lib/messaging'
 import type { Role } from '@/types'
 
 export interface Contact {
@@ -28,6 +28,7 @@ export function useContacts(
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({})
+  const channelRef = useRef<ReturnType<typeof subscribeToMessages> | null>(null)
 
   const fetchContacts = useCallback(async () => {
     if (!userId || !role) {
@@ -65,6 +66,31 @@ export function useContacts(
   useEffect(() => {
     fetchContacts()
   }, [fetchContacts])
+
+  // Real-time updates for contact ordering and unread counts
+  useEffect(() => {
+    if (!userId) return
+
+    if (channelRef.current) {
+      // We can't directly call removeChannel here because we don't have supabase client easily accessible in this hook
+      // But we can let the underlying messaging.ts manage it if we add a cleanup mechanism, OR we just let it be.
+      // Actually, subscribeToMessages returns the channel. We need createClient to remove it.
+    }
+
+    const handleMessageUpdate = () => {
+      // Re-fetch contacts to update the latest message, time, and unread counts
+      fetchContacts()
+    }
+
+    const channel = subscribeToMessages(userId, handleMessageUpdate, handleMessageUpdate)
+    channelRef.current = channel
+
+    return () => {
+      if (channel) {
+        channel.unsubscribe()
+      }
+    }
+  }, [userId, fetchContacts])
 
   return { contacts, isLoading, error, unreadCounts, refetch: fetchContacts }
 }
