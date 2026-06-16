@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   User, Mail, Phone, Building2, GraduationCap, Calendar, Edit2, 
   Save, X, Camera, Lock, Shield, BookOpen, CheckCircle, Award,
-  BarChart2, Clock, MessageSquare, Bell, Copy, Check, Fingerprint, QrCode
+  BarChart2, Clock, MessageSquare, Bell, Copy, Check, Fingerprint, QrCode, LogOut
 } from 'lucide-react'
 import { useAuth } from '@/providers/AuthProvider'
 import { Avatar } from '@/components/ui/Avatar'
@@ -50,7 +50,7 @@ const SUBJECT_PERFORMANCE = [
 ]
 
 export default function ProfilePage() {
-  const { profile, role } = useAuth()
+  const { profile, role, signOut } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'security'>('overview')
   const [editForm, setEditForm] = useState({
@@ -377,10 +377,15 @@ export default function ProfilePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-slate-500 mb-4">These actions are irreversible. Please be careful.</p>
-                <Button variant="danger" className="gap-2">
-                  <X size={16} /> Delete Account
-                </Button>
+                <p className="text-sm text-slate-500 mb-4">Manage your account access and data. Signing out will require you to log back in.</p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button variant="danger" onClick={signOut} className="gap-2 w-full sm:w-auto">
+                    <LogOut size={16} /> Sign Out
+                  </Button>
+                  <Button variant="outline" className="gap-2 text-red-600 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20 w-full sm:w-auto">
+                    <X size={16} /> Delete Account
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </motion.div>

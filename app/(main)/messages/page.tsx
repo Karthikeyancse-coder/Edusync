@@ -30,7 +30,7 @@ export default function Messages() {
   const { profile, role, department } = useAuth()
   const [activeContact, setActiveContact] = useState<any | null>(null)
   const { contacts: realContacts, isLoading: isContactsLoading } = useContacts(profile?.id, role as any, department, false)
-  const { messages: realMessages, send: sendRealMessage } = useMessages(profile?.id, activeContact?.id, role as any, (activeContact?.raw?.role || activeContact?.role?.toLowerCase() || null) as any)
+  const { messages: realMessages, send: sendRealMessage, edit: editRealMessage, remove: removeRealMessage } = useMessages(profile?.id, activeContact?.id, role as any, (activeContact?.raw?.role || activeContact?.role?.toLowerCase() || null) as any)
 
   const [contacts, setContacts] = useState<any[]>(initialContacts)
   const [message, setMessage] = useState('')
@@ -241,11 +241,12 @@ export default function Messages() {
     if (!activeContact) return
 
     if (editingMessage) {
-      setChatMessages(prev => prev.map(m => 
-        m.id === editingMessage.id 
-          ? { ...m, text: message, isEdited: true } 
-          : m
-      ))
+      try {
+        await editRealMessage(editingMessage.id, message)
+      } catch (e: any) {
+        console.error("Failed to edit message", e)
+        alert("Failed to edit message: " + e.message)
+      }
       setEditingMessage(null)
       setMessage('')
       return
@@ -264,10 +265,15 @@ export default function Messages() {
     }
   }
 
-  const handleDeleteMessage = (id: any) => {
-    setChatMessages(prev => prev.filter(m => m.id !== id))
-    if (pinnedMessage?.id === id) setPinnedMessage(null)
-    setContextMenu(null)
+  const handleDeleteMessage = async (id: any) => {
+    try {
+      await removeRealMessage(id)
+      if (pinnedMessage?.id === id) setPinnedMessage(null)
+      setContextMenu(null)
+    } catch (e: any) {
+      console.error("Failed to delete message", e)
+      alert("Failed to delete message: " + e.message)
+    }
   }
 
   const handleArchiveChat = (id: any) => {
@@ -383,11 +389,18 @@ export default function Messages() {
     )
   }
 
-  const handleDeleteSelected = () => {
-    setChatMessages(prev => prev.filter(m => !selectedMsgIds.includes(m.id)))
-    if (pinnedMessage && selectedMsgIds.includes(pinnedMessage.id)) setPinnedMessage(null)
-    setSelectMode(false)
-    setSelectedMsgIds([])
+  const handleDeleteSelected = async () => {
+    try {
+      for (const id of selectedMsgIds) {
+        await removeRealMessage(id)
+      }
+      if (pinnedMessage && selectedMsgIds.includes(pinnedMessage.id)) setPinnedMessage(null)
+      setSelectMode(false)
+      setSelectedMsgIds([])
+    } catch (e: any) {
+      console.error("Failed to delete selected messages", e)
+      alert("Failed to delete some messages: " + e.message)
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

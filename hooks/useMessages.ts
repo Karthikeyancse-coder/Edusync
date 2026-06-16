@@ -7,6 +7,8 @@ import {
   sendMessage as sendMsg,
   approveMessage as approveMsg,
   rejectMessage as rejectMsg,
+  editMessage as editMsg,
+  deleteMessage as deleteMsg,
   markAsRead,
   subscribeToMessages,
 } from '@/lib/messaging'
@@ -184,5 +186,38 @@ export function useMessages(
     []
   )
 
-  return { messages, isLoading, error, send, approve, reject, refetch: fetchMessages }
+  const edit = useCallback(
+    async (messageId: string, newContent: string) => {
+      if (!userId) return
+      // Optimistic update
+      setMessages(prev =>
+        prev.map(m => (m.id === messageId ? { ...m, content: newContent } : m))
+      )
+      try {
+        await editMsg(messageId, userId, newContent)
+      } catch (e: any) {
+        // We could revert the optimistic update here if needed
+        console.error('Failed to edit message', e)
+        throw e
+      }
+    },
+    [userId]
+  )
+
+  const remove = useCallback(
+    async (messageId: string) => {
+      if (!userId) return
+      // Optimistic update
+      setMessages(prev => prev.filter(m => m.id !== messageId))
+      try {
+        await deleteMsg(messageId, userId)
+      } catch (e: any) {
+        console.error('Failed to delete message', e)
+        throw e
+      }
+    },
+    [userId]
+  )
+
+  return { messages, isLoading, error, send, approve, reject, edit, remove, refetch: fetchMessages }
 }

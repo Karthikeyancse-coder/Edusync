@@ -207,6 +207,32 @@ export async function rejectMessage(messageId: string, reason: string) {
   if (error) throw error
 }
 
+// ─── Edit a message ───────────────────────────────────────────────────────────
+export async function editMessage(messageId: string, userId: string, newContent: string) {
+  const supabase = createClient()
+
+  // Only allow editing if the user is the sender
+  const { error } = await supabase
+    .from('messages')
+    .update({ content: newContent })
+    .match({ id: messageId, sender_id: userId })
+
+  if (error) throw error
+}
+
+// ─── Delete a message ─────────────────────────────────────────────────────────
+export async function deleteMessage(messageId: string, userId: string) {
+  const supabase = createClient()
+
+  // Only allow deleting if the user is the sender
+  const { error } = await supabase
+    .from('messages')
+    .delete()
+    .match({ id: messageId, sender_id: userId })
+
+  if (error) throw error
+}
+
 // ─── Get pending messages for approval (faculty or HOD) ───────────────────────
 export async function getPendingApprovals(approverId: string, approverRole: Role) {
   const supabase = createClient()
