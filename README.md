@@ -292,8 +292,8 @@ npm run dev
 ✅  Group Info slide-in panel
 ✅  Marks, attendance, timetable
 ✅  Mobile bottom navigation
+✅  Real-time messages & WhatsApp-style inbox sorting
 
-⬜  Real-time messages — Supabase Realtime
 ⬜  Push notifications (PWA)
 ⬜  File & document sharing in chat
 ⬜  Assignment submission portal

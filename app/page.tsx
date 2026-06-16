@@ -42,7 +42,7 @@ function CountCard({ value, suffix = '', label, start }: { value: number; suffix
 
 /* ─────────────── data ─────────────── */
 const features = [
-  { icon: MessageSquare, color: 'from-indigo-500 to-violet-600', title: 'Smart Messaging', desc: 'Role-based messaging with a 3-tier approval chain. Students message faculty, HOD, or Principal through a structured workflow.' },
+  { icon: MessageSquare, color: 'from-indigo-500 to-violet-600', title: 'Smart Messaging', desc: 'Real-time role-based chat with edit, delete, and WhatsApp-style inbox sorting. Features a 3-tier approval chain for student-to-admin messages.' },
   { icon: Bell, color: 'from-amber-500 to-orange-600', title: 'Announcements', desc: 'HODs post dept-scoped notices; Principal broadcasts college-wide. Students get real-time notifications for every update.' },
   { icon: ClipboardList, color: 'from-emerald-500 to-teal-600', title: 'Assignments', desc: 'Faculty publish assignments with deadlines. Students submit files, track status, and receive graded results with feedback.' },
   { icon: BarChart2, color: 'from-blue-500 to-cyan-600', title: 'Marks & Grades', desc: 'Enter marks across 9 exam types. Publish when ready — students see results instantly. Full subject-wise analytics.' },
