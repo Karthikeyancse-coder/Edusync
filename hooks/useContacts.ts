@@ -49,7 +49,7 @@ export function useContacts(
 
 
       setContacts(
-        (contactData as Contact[]).map(c => ({
+        (contactData as any[]).map(c => ({
           ...c,
           unread: unreadData[c.id] ?? 0,
         }))
